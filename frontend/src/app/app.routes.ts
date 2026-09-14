@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { HomeComponent } from './features/home/home.component';
 import { AboutComponent } from './features/about/about.component';
 import { ContactComponent } from './features/contact/contact.component';
+import { ShopComponent } from './features/shop/shop.component';
 
 // Intentionally blank — used for any route that isn't built yet (Shop,
 // Account, Cart, etc.) so those pages show nothing instead of Home's
@@ -26,8 +27,8 @@ export const routes: Routes = [
     // a member adds their own component, add a real entry here ABOVE the
     // wildcard, e.g.:
     //
-    //   { path: 'shop', component: ShopComponent },
-    //   { path: 'shop/:id', component: ProductDetailComponent },
+     { path: 'shop', component: ShopComponent },
+     // { path: 'shop/:id', component: ProductDetailComponent },
     //   { path: 'cart', component: CartComponent },
     //   { path: 'checkout', component: CheckoutComponent },
     //   { path: 'account', component: AccountComponent },
