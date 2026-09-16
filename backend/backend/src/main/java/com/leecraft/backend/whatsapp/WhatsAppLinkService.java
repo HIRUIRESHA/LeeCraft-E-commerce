@@ -1,7 +1,7 @@
 package com.leecraft.backend.whatsapp;
 
-import com.leecraft.backend.order.Order;
-import com.leecraft.backend.order.OrderItem;
+import com.leecraft.backend.order.models.Order;
+import com.leecraft.backend.order.models.OrderItem;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;

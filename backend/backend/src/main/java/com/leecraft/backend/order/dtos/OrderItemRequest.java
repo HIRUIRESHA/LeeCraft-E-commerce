@@ -1,4 +1,4 @@
-package com.leecraft.backend.order.dto;
+package com.leecraft.backend.order.dtos;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;

@@ -1,10 +1,14 @@
-package com.leecraft.backend.order;
+package com.leecraft.backend.order.services;
 
 import com.leecraft.backend.exception.OrderNotFoundException;
-import com.leecraft.backend.order.dto.CheckoutRequest;
-import com.leecraft.backend.order.dto.OrderItemRequest;
-import com.leecraft.backend.order.dto.OrderResponse;
-import com.leecraft.backend.order.dto.SalesSummaryResponse;
+import com.leecraft.backend.order.dtos.CheckoutRequest;
+import com.leecraft.backend.order.dtos.OrderItemRequest;
+import com.leecraft.backend.order.dtos.OrderResponse;
+import com.leecraft.backend.order.dtos.SalesSummaryResponse;
+import com.leecraft.backend.order.models.Order;
+import com.leecraft.backend.order.models.OrderItem;
+import com.leecraft.backend.order.models.OrderStatus;
+import com.leecraft.backend.order.repositories.OrderRepository;
 import com.leecraft.backend.whatsapp.WhatsAppLinkService;
 import java.math.BigDecimal;
 import java.security.SecureRandom;

@@ -1,4 +1,4 @@
-package com.leecraft.backend.order;
+package com.leecraft.backend.order.models;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
