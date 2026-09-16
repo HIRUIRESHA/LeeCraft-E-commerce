@@ -1,3 +1,92 @@
-/* You can add global styles to this file, and also import other style files */
+/* Design system copied 1:1 from the LeeCraft admin design preview so this
+   Angular app renders identically to the storefront's wood-tone theme. */
+:root{
+  --wood-900:#2A1D14; --wood-800:#3B2A20; --wood-700:#5C4530; --wood-500:#8A4B2E;
+  --wood-400:#A9764F; --wood-200:#D8C6B2; --cream:#FBF6EF; --cream-2:#F3EADB;
+  --card:#FFFEFB; --line:#EADFCF; --ok:#4C7A4C; --danger:#B44C3C;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;font-family:'Jost',system-ui,sans-serif;color:var(--wood-800);background:var(--cream);}
+h1,h2,h3,h4,.serif{font-family:'Fraunces','Georgia',serif;}
+a{color:var(--wood-500);text-decoration:none;}
+img{max-width:100%;display:block;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;}
+.wrap{max-width:1240px;margin:0 auto;padding:0 24px;}
+.eyebrow{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--wood-400);font-weight:600;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 28px;border-radius:3px;font-size:13px;letter-spacing:1px;text-transform:uppercase;border:1px solid transparent;transition:.15s;font-weight:500;}
+.btn-primary{background:var(--wood-500);color:#fff;}
+.btn-primary:hover{background:#6E3A22;}
+.btn-outline{background:transparent;color:var(--wood-800);border-color:var(--wood-800);}
+.btn-outline:hover{background:var(--wood-800);color:#fff;}
+.btn-danger{background:transparent;color:var(--danger);border-color:var(--danger);}
+.btn-danger:hover{background:var(--danger);color:#fff;}
+.btn-sm{padding:9px 16px;font-size:11px;}
+.card{background:var(--card);border:1px solid var(--line);}
+.grid{display:grid;gap:24px;}
+.section{padding:48px 0 80px;}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:4px 10px;border-radius:20px;background:var(--cream-2);color:var(--wood-700);}
+.badge.out{background:#F3DEDA;color:var(--danger);}
 
-@import "tailwindcss";
+/* header */
+header.site{position:sticky;top:0;z-index:40;background:var(--cream);border-bottom:1px solid var(--line);}
+.topbar{background:var(--wood-900);color:var(--wood-200);font-size:12px;text-align:center;padding:7px;letter-spacing:.4px;}
+.navrow{display:flex;align-items:center;justify-content:space-between;padding:16px 0;}
+.brand{display:flex;align-items:center;gap:10px;cursor:pointer;}
+.brand .logo{height:38px;width:38px;border-radius:6px;background:var(--wood-500);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:16px;}
+.brand .name{font-size:20px;}
+.navlinks{display:flex;gap:30px;}
+.navlinks a{font-size:14px;color:var(--wood-800);cursor:pointer;}
+.navlinks a:hover,.navlinks a.active{color:var(--wood-500);}
+.navicons{display:flex;align-items:center;gap:18px;}
+.admin-pill{font-size:11px;letter-spacing:1px;text-transform:uppercase;background:var(--wood-800);color:#fff;padding:6px 12px;border-radius:20px;}
+
+/* admin dashboard */
+.admin-grid{grid-template-columns:repeat(4,1fr);}
+.stat-card{padding:22px;}
+.stat-card .num{font-size:26px;font-weight:600;font-family:'Fraunces',serif;}
+.stat-card .lbl{font-size:12.5px;color:var(--wood-400);margin-top:6px;}
+.admin-note{background:#F3EADB;border:1px solid var(--line);padding:14px 18px;font-size:13px;color:var(--wood-700);margin-bottom:30px;}
+
+/* tabs */
+.acc-tabs{display:flex;gap:0;margin-bottom:30px;border-bottom:1px solid var(--line);}
+.tab-btn{padding:14px 22px;font-size:13px;letter-spacing:.5px;text-transform:uppercase;background:none;border:none;border-bottom:2px solid transparent;color:var(--wood-400);cursor:pointer;}
+.tab-btn.active{color:var(--wood-800);border-color:var(--wood-500);}
+
+/* forms */
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12.5px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;color:var(--wood-700);}
+.field input,.field select,.field textarea{width:100%;padding:11px 13px;border:1px solid var(--line);font-size:13.5px;background:#fff;border-radius:3px;}
+.field.checkbox{display:flex;align-items:center;gap:8px;margin-top:26px;}
+.field.checkbox label{margin:0;text-transform:none;letter-spacing:0;font-size:13.5px;}
+.field.checkbox input{width:auto;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
+/* order rows */
+.order-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
+.status-chip{font-size:11px;padding:5px 10px;border-radius:20px;border:none;font-family:inherit;}
+
+/* product/customer list rows */
+.list-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
+.thumb{width:44px;height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:3px;}
+.thumb img{width:100%;height:100%;object-fit:cover;}
+.thumb .none{font-size:9px;color:var(--wood-400);text-align:center;}
+
+/* footer */
+.nform{display:flex;max-width:420px;margin-top:14px;border:1px solid #4A3826;}
+.nform input{flex:1;border:none;background:transparent;padding:13px 16px;font-size:13px;outline:none;color:#F0E4D6;}
+.nform button{background:var(--wood-500);color:#fff;border:none;padding:0 22px;font-size:12px;letter-spacing:1px;text-transform:uppercase;}
+footer.site{background:var(--wood-900);color:var(--wood-200);padding:60px 0 24px;}
+.fgrid{grid-template-columns:1.4fr 1fr 1fr 1fr 1.2fr;padding-bottom:44px;border-bottom:1px solid #4A3826;}
+.fgrid h4{font-size:12.5px;letter-spacing:1.5px;text-transform:uppercase;color:#F0E4D6;margin:0 0 16px;}
+.fgrid a{display:block;color:#B39F87;font-size:13px;margin-bottom:10px;cursor:pointer;}
+.fgrid a:hover{color:#fff;}
+.fbottom{display:flex;justify-content:space-between;padding-top:20px;font-size:12px;color:#8A7259;flex-wrap:wrap;gap:10px;}
+
+@media (max-width: 860px){
+  .navlinks{display:none;}
+  .admin-grid,.form-row{grid-template-columns:repeat(2,1fr);}
+  .fgrid{grid-template-columns:repeat(2,1fr);gap:30px;}
+  .list-row,.order-row{flex-wrap:wrap;}
+}
