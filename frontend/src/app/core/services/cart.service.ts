@@ -1,0 +1,128 @@
+import { Injectable, computed, signal } from '@angular/core';
+import { CartItem, CartSummary } from '../models/cart.model';
+import { Product } from '../models/product.model';
+
+const STORAGE_KEY = 'leecraft_cart';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class CartService {
+  private readonly cartItemsSignal = signal<CartItem[]>(this.loadFromStorage());
+
+  readonly items = this.cartItemsSignal.asReadonly();
+  readonly cartItems = this.cartItemsSignal.asReadonly();
+  readonly itemCount = computed(() => this.cartItemsSignal().reduce((sum, item) => sum + item.quantity, 0));
+  readonly subtotal = computed(() =>
+    this.cartItemsSignal().reduce((sum, item) => sum + item.price * item.quantity, 0),
+  );
+  readonly shipping = computed(() => (this.subtotal() >= 8000 ? 0 : 400));
+  readonly total = computed(() => this.subtotal() + this.shipping());
+  readonly summary = computed<CartSummary>(() => ({
+    subtotal: this.subtotal(),
+    total: this.total(),
+    itemCount: this.itemCount(),
+  }));
+
+  addToCart(product: Product, quantity: number = 1): void {
+    if (!product || quantity <= 0) {
+      return;
+    }
+
+    const current = this.cartItemsSignal();
+    const existingItem = current.find((item) => item.productId === product.id);
+
+    if (existingItem) {
+      this.cartItemsSignal.set(
+        current.map((item) =>
+          item.productId === product.id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item,
+        ),
+      );
+    } else {
+      this.cartItemsSignal.set([
+        ...current,
+        {
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          quantity,
+        },
+      ]);
+    }
+
+    this.persist();
+  }
+
+  removeFromCart(productId: string): void {
+    this.cartItemsSignal.set(this.cartItemsSignal().filter((item) => item.productId !== productId));
+    this.persist();
+  }
+
+  increaseQuantity(productId: string): void {
+    this.updateQuantity(productId, 1);
+  }
+
+  decreaseQuantity(productId: string): void {
+    const item = this.cartItemsSignal().find((cartItem) => cartItem.productId === productId);
+
+    if (!item) {
+      return;
+    }
+
+    if (item.quantity <= 1) {
+      this.removeFromCart(productId);
+      return;
+    }
+
+    this.updateQuantity(productId, -1);
+  }
+
+  clearCart(): void {
+    this.cartItemsSignal.set([]);
+    this.persist();
+  }
+
+  clear(): void {
+    this.clearCart();
+  }
+
+  isInCart(productId: string): boolean {
+    return this.cartItemsSignal().some((item) => item.productId === productId);
+  }
+
+  private updateQuantity(productId: string, change: number): void {
+    this.cartItemsSignal.set(
+      this.cartItemsSignal().map((item) =>
+        item.productId === productId
+          ? { ...item, quantity: Math.max(0, item.quantity + change) }
+          : item,
+      ).filter((item) => item.quantity > 0),
+    );
+
+    this.persist();
+  }
+
+  private persist(): void {
+    const value = JSON.stringify(this.cartItemsSignal());
+
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, value);
+    }
+  }
+
+  private loadFromStorage(): CartItem[] {
+    if (typeof localStorage === 'undefined') {
+      return [];
+    }
+
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? (JSON.parse(stored) as CartItem[]) : [];
+    } catch {
+      return [];
+    }
+  }
+}

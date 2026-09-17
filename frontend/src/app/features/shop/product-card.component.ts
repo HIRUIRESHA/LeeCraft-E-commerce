@@ -2,6 +2,8 @@ import { DecimalPipe } from '@angular/common';
 import { Component, Input, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NotificationService } from '../../core/services/notification.service';
+import { CartService } from '../../core/services/cart.service';
+import { WishlistService } from '../../core/services/wishlist.service';
 import { Product } from '../../core/models/product.model';
 import { woodSwatch } from '../../core/utils/wood-swatch';
 
@@ -26,6 +28,7 @@ import { woodSwatch } from '../../core/utils/wood-swatch';
         <button
           type="button"
           class="wish"
+          [class.active]="isWishlisted()"
           (click)="onWishlist($event)"
           title="Wishlist"
         >
@@ -33,7 +36,7 @@ import { woodSwatch } from '../../core/utils/wood-swatch';
             width="15"
             height="15"
             viewBox="0 0 24 24"
-            fill="none"
+            [attr.fill]="isWishlisted() ? 'currentColor' : 'none'"
             stroke="currentColor"
             stroke-width="1.7"
           >
@@ -98,6 +101,36 @@ import { woodSwatch } from '../../core/utils/wood-swatch';
 
     </a>
   `,
+  styles: [`
+    .wish {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 30px;
+      height: 30px;
+      border: 1px solid rgba(255,255,255,0.7);
+      background: rgba(255,255,255,0.72);
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--wood-700);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      z-index: 2;
+    }
+    .wish.active {
+      background: var(--wood-500);
+      border-color: var(--wood-500);
+      color: white;
+    }
+    .pcard {
+      position: relative;
+    }
+    .thumb {
+      position: relative;
+    }
+  `],
 })
 export class ProductCardComponent {
 
@@ -105,6 +138,10 @@ export class ProductCardComponent {
   product!: Product;
 
   private notifications = inject(NotificationService);
+  private cartService = inject(CartService);
+  private wishlistService = inject(WishlistService);
+
+  isWishlisted = computed(() => this.wishlistService.isInWishlist(this.product.id));
 
   discountPct = computed(() => {
     const old = this.product.oldPrice;
@@ -133,7 +170,10 @@ export class ProductCardComponent {
     event.preventDefault();
     event.stopPropagation();
 
-    // Wishlist functionality can be added later.
+    const isAdded = this.wishlistService.toggleWishlist(this.product);
+    this.notifications.success(
+      isAdded ? `${this.product.name} added to wishlist.` : `${this.product.name} removed from wishlist.`
+    );
   }
 
   onAdd(event: Event): void {
@@ -144,8 +184,7 @@ export class ProductCardComponent {
       return;
     }
 
-    this.notifications.success(
-      `${this.product.name} added to cart.`
-    );
+    this.cartService.addToCart(this.product, 1);
+    this.notifications.success(`${this.product.name} added to cart.`);
   }
 }
