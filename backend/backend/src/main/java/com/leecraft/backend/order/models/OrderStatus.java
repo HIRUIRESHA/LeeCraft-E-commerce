@@ -1,4 +1,4 @@
-package com.leecraft.backend.order;
+package com.leecraft.backend.order.models;
 
 public enum OrderStatus {
     PLACED,

@@ -1,9 +1,9 @@
-package com.leecraft.backend.order.dto;
+package com.leecraft.backend.order.dtos;
 
-import com.leecraft.backend.order.ContactMethod;
-import com.leecraft.backend.order.Order;
-import com.leecraft.backend.order.OrderStatus;
-import com.leecraft.backend.order.ShippingMethod;
+import com.leecraft.backend.order.models.ContactMethod;
+import com.leecraft.backend.order.models.Order;
+import com.leecraft.backend.order.models.OrderStatus;
+import com.leecraft.backend.order.models.ShippingMethod;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;

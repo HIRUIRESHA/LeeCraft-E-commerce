@@ -1,5 +1,7 @@
-package com.leecraft.backend.order;
+package com.leecraft.backend.order.repositories;
 
+import com.leecraft.backend.order.models.Order;
+import com.leecraft.backend.order.models.OrderStatus;
 import java.math.BigDecimal;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -17,6 +19,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     long countByStatus(OrderStatus status);
 
-    @Query("select coalesce(sum(o.total), 0) from Order o where o.status <> com.leecraft.backend.order.OrderStatus.CANCELLED")
+    @Query("select coalesce(sum(o.total), 0) from Order o where o.status <> com.leecraft.backend.order.models.OrderStatus.CANCELLED")
     BigDecimal sumRevenue();
 }

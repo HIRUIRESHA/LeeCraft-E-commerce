@@ -1,7 +1,8 @@
-package com.leecraft.backend.order;
+package com.leecraft.backend.order.controllers;
 
-import com.leecraft.backend.order.dto.CheckoutRequest;
-import com.leecraft.backend.order.dto.OrderResponse;
+import com.leecraft.backend.order.dtos.CheckoutRequest;
+import com.leecraft.backend.order.dtos.OrderResponse;
+import com.leecraft.backend.order.services.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

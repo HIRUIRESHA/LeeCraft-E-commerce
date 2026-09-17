@@ -1,6 +1,6 @@
-package com.leecraft.backend.order.dto;
+package com.leecraft.backend.order.dtos;
 
-import com.leecraft.backend.order.OrderItem;
+import com.leecraft.backend.order.models.OrderItem;
 import java.math.BigDecimal;
 
 public record OrderItemResponse(

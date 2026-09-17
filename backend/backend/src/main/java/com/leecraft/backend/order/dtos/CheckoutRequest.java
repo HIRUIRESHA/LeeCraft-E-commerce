@@ -1,7 +1,7 @@
-package com.leecraft.backend.order.dto;
+package com.leecraft.backend.order.dtos;
 
-import com.leecraft.backend.order.ContactMethod;
-import com.leecraft.backend.order.ShippingMethod;
+import com.leecraft.backend.order.models.ContactMethod;
+import com.leecraft.backend.order.models.ShippingMethod;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
