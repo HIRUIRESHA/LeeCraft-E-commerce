@@ -17,29 +17,77 @@ export class AuthService {
 
   login(req: LoginRequest): Observable<AuthResponse> {
     return this.http
-      .post<AuthResponse>(`${environment.apiUrl}/auth/login`, req, { withCredentials: true })
-      .pipe(tap((res) => this.setSession(res)));
+      .post<AuthResponse>(
+        `${environment.apiUrl}/auth/login`,
+        req,
+        { withCredentials: true }
+      )
+      .pipe(
+        tap((res) => this.setSession(res))
+      );
   }
 
-  register(req: RegisterRequest): Observable<AuthResponse> {
+  register(req: RegisterRequest): Observable<string> {
     return this.http
-      .post<AuthResponse>(`${environment.apiUrl}/auth/register`, req, { withCredentials: true })
-      .pipe(tap((res) => this.setSession(res)));
+      .post(
+        `${environment.apiUrl}/auth/register`,
+        req,
+        {
+          withCredentials: true,
+          responseType: 'text'
+        }
+      );
   }
 
-  refresh(): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${environment.apiUrl}/auth/refresh`, {}, { withCredentials: true })
-      .pipe(tap((res) => this.setSession(res)));
-  }
-
-  logout(): Observable<void> {
-    return this.http.post<void>(`${environment.apiUrl}/auth/logout`, {}, { withCredentials: true }).pipe(
-      tap(() => {
-        this.accessToken = null;
-        this.currentUser.set(null);
-      }),
+  verifyEmail(email: string, code: string): Observable<string> {
+    return this.http.post(
+      `${environment.apiUrl}/auth/verify`,
+      {
+        email,
+        code
+      },
+      {
+        withCredentials: true,
+        responseType: 'text'
+      }
     );
+  }
+
+  forgotPassword(email: string): Observable<string> {
+  return this.http.post(
+    `${environment.apiUrl}/auth/forgot-password`,
+    { email },
+    {
+      withCredentials: true,
+      responseType: 'text'
+    }
+  );
+}
+
+resetPassword(
+  email: string,
+  code: string,
+  newPassword: string
+): Observable<string> {
+  return this.http.post(
+    `${environment.apiUrl}/auth/reset-password`,
+    {
+      email,
+      code,
+      newPassword
+    },
+    {
+      withCredentials: true,
+      responseType: 'text'
+    }
+  );
+}
+
+  
+
+  logout(): void {
+    this.accessToken = null;
+    this.currentUser.set(null);
   }
 
   getAccessToken(): string | null {
@@ -47,7 +95,12 @@ export class AuthService {
   }
 
   private setSession(res: AuthResponse): void {
-    this.accessToken = res.accessToken;
-    this.currentUser.set(res.user);
+    this.accessToken = res.token;
+
+    this.currentUser.set({
+      id: res.id,
+      fullName: res.fullName,
+      email: res.email
+    });
   }
 }

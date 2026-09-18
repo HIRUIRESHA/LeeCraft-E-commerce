@@ -50,8 +50,8 @@ export class AccountComponent {
   private router = inject(Router);
 
   logout(): void {
-    this.auth.logout().subscribe(() => {
-      this.router.navigate(['/account/login']);
-    });
+  this.auth.logout();
+  this.router.navigate(['/account/login']);
+
   }
 }
