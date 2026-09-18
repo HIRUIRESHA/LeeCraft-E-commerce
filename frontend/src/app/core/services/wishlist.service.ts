@@ -42,7 +42,7 @@ export class WishlistService {
     this.persist();
   }
 
-  removeFromWishlist(productId: string): void {
+  removeFromWishlist(productId: number): void {
     this.wishlistItems.set(this.wishlistItems().filter((item) => item.productId !== productId));
     this.persist();
   }
@@ -57,7 +57,7 @@ export class WishlistService {
     return true;
   }
 
-  isInWishlist(productId: string): boolean {
+  isInWishlist(productId: number): boolean {
     return this.wishlistItems().some((item) => item.productId === productId);
   }
 
