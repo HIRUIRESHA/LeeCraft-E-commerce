@@ -28,19 +28,25 @@ public class ProductController {
         return ResponseEntity.ok(productService.getAllProducts());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
-        return ResponseEntity.ok(productService.getProductById(id));
-    }
-
     @GetMapping("/search")
     public ResponseEntity<List<ProductResponse>> searchProducts(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice) {
-        return ResponseEntity.ok(productService.searchProducts(keyword, categoryId, minPrice, maxPrice));
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) String material,
+            @RequestParam(required = false) String size,
+            @RequestParam(required = false) String shape,
+            @RequestParam(required = false) String color,
+            @RequestParam(defaultValue = "false") boolean inStockOnly) {
+        return ResponseEntity.ok(productService.searchProducts(keyword, categoryId, minPrice, maxPrice, material, size, shape, color, inStockOnly));
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
+        return ResponseEntity.ok(productService.getProductById(id));
+    }
+
 
     @PostMapping
     public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductRequest request) {

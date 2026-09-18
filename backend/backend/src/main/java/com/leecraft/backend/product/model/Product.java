@@ -25,8 +25,17 @@ public class Product {
     @Column(name = "image_url")
     private String imageUrl;
 
-    @Column(name = "wood_type")
-    private String woodType;
+    @Column(nullable = false)
+    private String material;
+
+    @Column(nullable = false)
+    private String size;
+
+    @Column(nullable = false)
+    private String shape;
+
+    @Column(nullable = false)
+    private String color;
 
     @Column(name = "stock_quantity", nullable = false)
     private Integer stockQuantity;
@@ -64,8 +73,14 @@ public class Product {
     public void setPrice(BigDecimal price) { this.price = price; }
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
-    public String getWoodType() { return woodType; }
-    public void setWoodType(String woodType) { this.woodType = woodType; }
+    public String getMaterial() { return material; }
+    public void setMaterial(String material) { this.material = material; }
+    public String getSize() { return size; }
+    public void setSize(String size) { this.size = size; }
+    public String getShape() { return shape; }
+    public void setShape(String shape) { this.shape = shape; }
+    public String getColor() { return color; }
+    public void setColor(String color) { this.color = color; }
     public Integer getStockQuantity() { return stockQuantity; }
     public void setStockQuantity(Integer stockQuantity) { this.stockQuantity = stockQuantity; }
     public Category getCategory() { return category; }
