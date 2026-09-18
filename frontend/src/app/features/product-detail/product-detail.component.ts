@@ -1,7 +1,7 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-//import { CartService } from '../../core/services/cart.service';
+import { CartService } from '../../core/services/cart.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ProductService } from '../../core/services/product.service';
 import { Product } from '../../core/models/product.model';
@@ -148,6 +148,7 @@ export class ProductDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private products: ProductService,
+    private cart: CartService,
     //  private cart: CartService,
     private notifications: NotificationService,
   ) {}
@@ -173,6 +174,7 @@ export class ProductDetailComponent implements OnInit {
   }
 
   addToCart(product: Product): void {
+    this.cart.addToCart(product, this.qty());
     //   this.cart.add(product, this.qty());
     this.notifications.success(`${product.name} added to cart.`);
   }
@@ -182,6 +184,7 @@ export class ProductDetailComponent implements OnInit {
   }
 
   buyNow(product: Product): void {
+    this.cart.addToCart(product, this.qty());
     //   this.cart.add(product, this.qty());
     this.router.navigate(['/checkout']);
   }
