@@ -1,0 +1,48 @@
+# OS / editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Node / Angular
+node_modules/
+frontend/node_modules/
+admin-frontend/node_modules/
+frontend/dist/
+admin-frontend/dist/
+frontend/.angular/
+admin-frontend/.angular/
+frontend/package-lock.json
+admin-frontend/package-lock.json
+
+# Java / Maven / Spring Boot
+backend/backend/target/
+backend/backend/.classpath
+backend/backend/.project
+backend/backend/.settings/
+backend/backend/.idea/
+backend/backend/*.iml
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Build outputs
+build/
+out/
+coverage/
+
+# Optional: keep local secrets out
+*.pem
+*.key
+*.crt

@@ -70,10 +70,10 @@ import { CheckoutRequest } from '../../core/models/order.model';
         <div class="cart-summary">
           <h3 style="margin-top:0;font-size:16px;">Order Summary</h3>
           <div style="margin-bottom:16px;">
-            @for (item of cart.cartItems(); track item.product.id) {
+            @for (item of cart.cartItems(); track item.productId) {
               <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;">
-                <span>{{ item.product.name }} &times; {{ item.qty }}</span>
-                <span>Rs. {{ item.product.price * item.qty | number }}</span>
+                <span>{{ item.name }} &times; {{ item.quantity }}</span>
+                <span>Rs. {{ item.price * item.quantity | number }}</span>
               </div>
             }
           </div>
@@ -107,7 +107,7 @@ export class CheckoutComponent {
 
     const req: CheckoutRequest = {
       ...(this.form.getRawValue() as Omit<CheckoutRequest, 'items'>),
-      items: this.cart.cartItems().map((i) => ({ productId: i.product.id, qty: i.qty })),
+      items: this.cart.cartItems().map((i) => ({ productId: i.productId, qty: i.quantity })),
     };
 
     this.orders.place(req).subscribe((order) => {

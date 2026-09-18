@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { CartService } from '../../core/services/cart.service';
+import { WishlistService } from '../../core/services/wishlist.service';
 
 @Component({
     selector: 'app-navbar',
@@ -33,8 +35,9 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
           <button class="icon-btn" title="Account" routerLink="/account">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           </button>
-          <button class="icon-btn" title="Wishlist" routerLink="/account">
+          <button class="icon-btn" title="Wishlist" routerLink="/wishlist">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+            <span class="count-badge" *ngIf="wishlistCount() > 0">{{ wishlistCount() }}</span>
           </button>
           <button class="icon-btn" title="Cart" routerLink="/cart">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
@@ -84,9 +87,10 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 })
 export class NavbarComponent {
     protected readonly menuOpen = signal(false);
-
-    /** Placeholder until the cart feature (owned by another team member) provides real state. */
-    protected readonly cartCount = signal(0);
+    private readonly cartService = inject(CartService);
+    private readonly wishlistService = inject(WishlistService);
+    protected readonly cartCount = computed(() => this.cartService.itemCount());
+    protected readonly wishlistCount = computed(() => this.wishlistService.itemCount());
 
     toggleMenu(): void {
         this.menuOpen.update((v) => !v);
