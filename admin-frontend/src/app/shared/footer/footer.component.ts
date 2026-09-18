@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 /** URL of the customer-facing storefront app (separate Angular project/port). */
-const STOREFRONT_URL = 'http://localhost:4200';
+const STOREFRONT_URL = 'http://localhost:4300';
 
 @Component({
   selector: 'app-footer',

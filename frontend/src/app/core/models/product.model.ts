@@ -1,7 +1,7 @@
-export type ProductSize = 'Small' | 'Medium' | 'Large';
+export type ProductSize = 'Small' | 'Medium' | 'Large' | string;
 
 export interface Product {
-  id: string;
+  id: number;
   name: string;
   price: number;
   oldPrice?: number;
@@ -14,4 +14,9 @@ export interface Product {
   color: string;
   rating: number;
   reviewCount: number;
+
+  // Backend fields
+  stockQuantity: number;
+  categoryId: number;
+  categoryName: string;
 }

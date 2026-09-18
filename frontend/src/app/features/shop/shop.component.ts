@@ -20,7 +20,12 @@ const PRICE_RANGES = [
   template: `
     <div class="wrap section">
       <div class="eyebrow">Shop</div>
-      <h1 class="serif" style="font-size:32px;font-weight:500;margin:10px 0 30px;">All Cutting Boards</h1>
+      <h1
+        class="serif"
+        style="font-size:32px;font-weight:500;margin:10px 0 30px;"
+      >
+        All Cutting Boards
+      </h1>
 
       <div class="shop-layout">
         <aside class="filters">
@@ -28,7 +33,11 @@ const PRICE_RANGES = [
             <h4>Price</h4>
             @for (range of priceRanges; track range.label) {
               <label>
-                <input type="checkbox" [checked]="selectedPriceRanges().includes(range.label)" (change)="togglePriceRange(range.label)" />
+                <input
+                  type="checkbox"
+                  [checked]="selectedPriceRanges().includes(range.label)"
+                  (change)="togglePriceRange(range.label)"
+                />
                 {{ range.label }}
               </label>
             }
@@ -37,7 +46,11 @@ const PRICE_RANGES = [
             <h4>Material</h4>
             @for (material of facet('material'); track material) {
               <label>
-                <input type="checkbox" [checked]="selectedMaterials().includes(material)" (change)="toggle(selectedMaterials, material)" />
+                <input
+                  type="checkbox"
+                  [checked]="selectedMaterials().includes(material)"
+                  (change)="toggle(selectedMaterials, material)"
+                />
                 {{ material }}
               </label>
             }
@@ -46,7 +59,11 @@ const PRICE_RANGES = [
             <h4>Size</h4>
             @for (size of facet('size'); track size) {
               <label>
-                <input type="checkbox" [checked]="selectedSizes().includes(size)" (change)="toggle(selectedSizes, size)" />
+                <input
+                  type="checkbox"
+                  [checked]="selectedSizes().includes(size)"
+                  (change)="toggle(selectedSizes, size)"
+                />
                 {{ size }}
               </label>
             }
@@ -55,7 +72,11 @@ const PRICE_RANGES = [
             <h4>Shape</h4>
             @for (shape of facet('shape'); track shape) {
               <label>
-                <input type="checkbox" [checked]="selectedShapes().includes(shape)" (change)="toggle(selectedShapes, shape)" />
+                <input
+                  type="checkbox"
+                  [checked]="selectedShapes().includes(shape)"
+                  (change)="toggle(selectedShapes, shape)"
+                />
                 {{ shape }}
               </label>
             }
@@ -64,7 +85,11 @@ const PRICE_RANGES = [
             <h4>Color</h4>
             @for (color of facet('color'); track color) {
               <label>
-                <input type="checkbox" [checked]="selectedColors().includes(color)" (change)="toggle(selectedColors, color)" />
+                <input
+                  type="checkbox"
+                  [checked]="selectedColors().includes(color)"
+                  (change)="toggle(selectedColors, color)"
+                />
                 {{ color }}
               </label>
             }
@@ -72,19 +97,43 @@ const PRICE_RANGES = [
           <div class="fgroup" style="border-bottom:none;">
             <h4>Availability</h4>
             <label>
-              <input type="checkbox" [checked]="inStockOnly()" (change)="inStockOnly.set(!inStockOnly())" />
+              <input
+                type="checkbox"
+                [checked]="inStockOnly()"
+                (change)="inStockOnly.set(!inStockOnly())"
+              />
               In Stock Only
             </label>
           </div>
-          <button class="btn btn-outline btn-block btn-sm" (click)="clearFilters()">Clear Filters</button>
+          <button
+            class="btn btn-outline btn-block btn-sm"
+            (click)="clearFilters()"
+          >
+            Clear Filters
+          </button>
         </aside>
 
         <div>
           <div class="shop-top">
             <div class="searchbox">
-              <input type="text" [value]="query()" (input)="query.set($any($event.target).value)" placeholder="Search cutting boards..." />
+              <input
+                type="text"
+                [value]="query()"
+                (input)="query.set($any($event.target).value)"
+                placeholder="Search cutting boards..."
+              />
               <button type="button">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                >
+                  <circle cx="11" cy="11" r="7" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
               </button>
             </div>
             <div class="sortbox">
@@ -101,7 +150,9 @@ const PRICE_RANGES = [
             @for (p of filtered(); track p.id) {
               <app-product-card [product]="p" />
             } @empty {
-              <p style="color:var(--wood-700);font-size:13.5px;">No boards match your filters.</p>
+              <p style="color:var(--wood-700);font-size:13.5px;">
+                No boards match your filters.
+              </p>
             }
           </div>
         </div>
@@ -131,15 +182,23 @@ export class ShopComponent implements OnInit {
     const colors = this.selectedColors();
 
     const list = this.all().filter((p) => {
-      if (q && !p.name.toLowerCase().includes(q) && !p.material.toLowerCase().includes(q)) return false;
+      if (
+        q &&
+        !p.name.toLowerCase().includes(q) &&
+        !p.material.toLowerCase().includes(q)
+      )
+        return false;
       if (this.inStockOnly() && !p.inStock) return false;
       if (materials.length && !materials.includes(p.material)) return false;
       if (sizes.length && !sizes.includes(p.size)) return false;
       if (shapes.length && !shapes.includes(p.shape)) return false;
       if (colors.length && !colors.includes(p.color)) return false;
       if (priceLabels.length) {
-        const ranges = PRICE_RANGES.filter((r) => priceLabels.includes(r.label));
-        if (!ranges.some((r) => p.price >= r.min && p.price < r.max)) return false;
+        const ranges = PRICE_RANGES.filter((r) =>
+          priceLabels.includes(r.label),
+        );
+        if (!ranges.some((r) => p.price >= r.min && p.price < r.max))
+          return false;
       }
       return true;
     });
@@ -150,7 +209,9 @@ export class ShopComponent implements OnInit {
       case 'price-desc':
         return [...list].sort((a, b) => b.price - a.price);
       case 'rating':
-        return [...list].sort((a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount);
+        return [...list].sort(
+          (a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount,
+        );
       default:
         return [...list].sort((a, b) => b.reviewCount - a.reviewCount);
     }
@@ -159,7 +220,14 @@ export class ShopComponent implements OnInit {
   constructor(private products: ProductService) {}
 
   ngOnInit(): void {
-    this.products.list().subscribe((list) => this.all.set(list));
+    this.products.list().subscribe({
+      next: (list) => {
+        this.all.set(list);
+      },
+      error: (error) => {
+        console.error('Failed to load products:', error);
+      },
+    });
   }
 
   facet(key: 'material' | 'size' | 'shape' | 'color'): string[] {
@@ -167,7 +235,9 @@ export class ShopComponent implements OnInit {
   }
 
   toggle(sig: ReturnType<typeof signal<string[]>>, value: string): void {
-    sig.update((list) => (list.includes(value) ? list.filter((v) => v !== value) : [...list, value]));
+    sig.update((list) =>
+      list.includes(value) ? list.filter((v) => v !== value) : [...list, value],
+    );
   }
 
   togglePriceRange(label: string): void {

@@ -13,16 +13,9 @@ import { woodSwatch } from '../../core/utils/wood-swatch';
   imports: [RouterLink, DecimalPipe],
   template: `
     <a [routerLink]="['/product', product.id]" class="pcard card">
-
-      <div
-        class="thumb"
-        [style.background]="product.image ? null : swatch()"
-      >
-
+      <div class="thumb" [style.background]="product.image ? null : swatch()">
         @if (product.oldPrice) {
-          <span class="tag-discount">
-            -{{ discountPct() }}%
-          </span>
+          <span class="tag-discount"> -{{ discountPct() }}% </span>
         }
 
         <button
@@ -47,16 +40,11 @@ import { woodSwatch } from '../../core/utils/wood-swatch';
         </button>
 
         @if (product.image) {
-          <img
-            [src]="product.image"
-            [alt]="product.name"
-          />
+          <img [src]="product.image" [alt]="product.name" />
         }
-
       </div>
 
       <div class="body">
-
         <h3 class="pname">
           {{ product.name }}
         </h3>
@@ -75,14 +63,11 @@ import { woodSwatch } from '../../core/utils/wood-swatch';
         </p>
 
         <div class="prow">
-
           <span class="price">
             Rs. {{ product.price | number }}
 
             @if (product.oldPrice) {
-              <span class="old">
-                Rs. {{ product.oldPrice | number }}
-              </span>
+              <span class="old"> Rs. {{ product.oldPrice | number }} </span>
             }
           </span>
 
@@ -94,11 +79,8 @@ import { woodSwatch } from '../../core/utils/wood-swatch';
           >
             {{ product.inStock ? 'Add' : 'Sold Out' }}
           </button>
-
         </div>
-
       </div>
-
     </a>
   `,
   styles: [`
@@ -133,7 +115,6 @@ import { woodSwatch } from '../../core/utils/wood-swatch';
   `],
 })
 export class ProductCardComponent {
-
   @Input({ required: true })
   product!: Product;
 
@@ -150,9 +131,7 @@ export class ProductCardComponent {
       return 0;
     }
 
-    return Math.round(
-      ((old - this.product.price) / old) * 100
-    );
+    return Math.round(((old - this.product.price) / old) * 100);
   });
 
   starString(): string {
