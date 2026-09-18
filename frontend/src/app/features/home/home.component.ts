@@ -374,7 +374,8 @@ import { Product } from '../../core/models/product.model';
       .prow {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        gap: 14px;
+       
       }
       .price {
         font-size: 15px;

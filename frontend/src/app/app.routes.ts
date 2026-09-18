@@ -33,6 +33,15 @@ export const routes: Routes = [
     title: 'Shop — LeeCraft.lk'
   },
 
+   // PRODUCT DETAIL PAGE
+  {
+    path: 'product/:id',
+    loadComponent: () =>
+      import('./features/product-detail/product-detail.component')
+        .then(m => m.ProductDetailComponent),
+    title: 'Product Details — LeeCraft.lk'
+  },
+
   // LOGIN PAGE
   {
     path: 'account/login',
