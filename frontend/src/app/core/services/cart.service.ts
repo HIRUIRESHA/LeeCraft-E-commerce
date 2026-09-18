@@ -1,6 +1,9 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { CartItem, CartSummary } from '../models/cart.model';
 import { Product } from '../models/product.model';
+import { AuthService } from './auth.service';
+import { NotificationService } from './notification.service';
 
 const STORAGE_KEY = 'leecraft_cart';
 
@@ -8,6 +11,10 @@ const STORAGE_KEY = 'leecraft_cart';
   providedIn: 'root',
 })
 export class CartService {
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly notify = inject(NotificationService);
+
   private readonly cartItemsSignal = signal<CartItem[]>(this.loadFromStorage());
 
   readonly items = this.cartItemsSignal.asReadonly();
@@ -24,9 +31,17 @@ export class CartService {
     itemCount: this.itemCount(),
   }));
 
-  addToCart(product: Product, quantity: number = 1): void {
+  addToCart(product: Product, quantity: number = 1): boolean {
+    if (!this.auth.isAuthenticated()) {
+      this.notify.error('Please log in to add items to your cart.');
+      this.router.navigate(['/account/login'], {
+        queryParams: { returnUrl: this.router.url },
+      });
+      return false;
+    }
+
     if (!product || quantity <= 0) {
-      return;
+      return false;
     }
 
     const current = this.cartItemsSignal();
@@ -54,6 +69,7 @@ export class CartService {
     }
 
     this.persist();
+    return true;
   }
 
   removeFromCart(productId: number): void {

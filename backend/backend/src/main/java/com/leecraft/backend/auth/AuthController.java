@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.leecraft.backend.auth.dto.ForgotPasswordRequest;
+import com.leecraft.backend.auth.dto.ResendVerificationRequest;
 import com.leecraft.backend.auth.dto.ResetPasswordRequest;
 
 @RestController
@@ -44,6 +45,15 @@ public class AuthController {
     ) {
         return ResponseEntity.ok(
                 authService.verifyEmail(request)
+        );
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<String> resendVerification(
+            @Valid @RequestBody ResendVerificationRequest request
+    ) {
+        return ResponseEntity.ok(
+                authService.resendVerificationCode(request.email())
         );
     }
 

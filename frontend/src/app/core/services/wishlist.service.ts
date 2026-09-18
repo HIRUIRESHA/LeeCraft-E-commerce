@@ -1,6 +1,9 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { WishlistItem, WishlistState } from '../models/cart.model';
 import { Product } from '../models/product.model';
+import { AuthService } from './auth.service';
+import { NotificationService } from './notification.service';
 
 const STORAGE_KEY = 'leecraft_wishlist';
 
@@ -8,6 +11,10 @@ const STORAGE_KEY = 'leecraft_wishlist';
   providedIn: 'root',
 })
 export class WishlistService {
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly notify = inject(NotificationService);
+
   private readonly wishlistItems = signal<WishlistItem[]>(this.loadFromStorage());
 
   readonly items = this.wishlistItems.asReadonly();
@@ -17,16 +24,24 @@ export class WishlistService {
     itemCount: this.itemCount(),
   }));
 
-  addToWishlist(product: Product): void {
+  addToWishlist(product: Product): boolean {
+    if (!this.auth.isAuthenticated()) {
+      this.notify.error('Please log in to save items to your wishlist.');
+      this.router.navigate(['/account/login'], {
+        queryParams: { returnUrl: this.router.url },
+      });
+      return false;
+    }
+
     if (!product) {
-      return;
+      return false;
     }
 
     const current = this.wishlistItems();
     const exists = current.some((item) => item.productId === product.id);
 
     if (exists) {
-      return;
+      return false;
     }
 
     this.wishlistItems.set([
@@ -40,6 +55,7 @@ export class WishlistService {
     ]);
 
     this.persist();
+    return true;
   }
 
   removeFromWishlist(productId: number): void {
@@ -47,7 +63,15 @@ export class WishlistService {
     this.persist();
   }
 
-  toggleWishlist(product: Product): boolean {
+  toggleWishlist(product: Product): boolean | null {
+    if (!this.auth.isAuthenticated()) {
+      this.notify.error('Please log in to save items to your wishlist.');
+      this.router.navigate(['/account/login'], {
+        queryParams: { returnUrl: this.router.url },
+      });
+      return null;
+    }
+
     if (this.isInWishlist(product.id)) {
       this.removeFromWishlist(product.id);
       return false;

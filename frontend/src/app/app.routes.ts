@@ -46,18 +46,21 @@ export const routes: Routes = [
 
   {
     path: 'cart',
+    canActivate: [authGuard],
     component: CartComponent,
     title: 'Cart — LeeCraft.lk'
   },
 
   {
     path: 'wishlist',
+    canActivate: [authGuard],
     component: WishlistComponent,
     title: 'Wishlist — LeeCraft.lk'
   },
 
   {
     path: 'checkout',
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./features/checkout/checkout.component')
         .then(m => m.CheckoutComponent),
@@ -66,6 +69,7 @@ export const routes: Routes = [
 
   {
     path: 'order-confirmation/:id',
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./features/order-confirmation/order-confirmation.component')
         .then(m => m.OrderConfirmationComponent),

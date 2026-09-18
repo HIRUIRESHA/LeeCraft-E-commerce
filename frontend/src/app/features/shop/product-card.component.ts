@@ -161,6 +161,9 @@ export class ProductCardComponent {
     event.stopPropagation();
 
     const isAdded = this.wishlistService.toggleWishlist(this.product);
+    if (isAdded === null) {
+      return;
+    }
     this.notifications.success(
       isAdded ? `${this.product.name} added to wishlist.` : `${this.product.name} removed from wishlist.`
     );
@@ -174,8 +177,10 @@ export class ProductCardComponent {
       return;
     }
 
-    this.cartService.addToCart(this.product, 1);
-    this.notifications.success(`${this.product.name} added to cart.`);
+    const added = this.cartService.addToCart(this.product, 1);
+    if (added) {
+      this.notifications.success(`${this.product.name} added to cart.`);
+    }
   }
 
   onView(event: Event): void {

@@ -20,6 +20,7 @@ import com.leecraft.backend.passwordreset.PasswordResetRepository;
 import com.leecraft.backend.auth.dto.ResetPasswordRequest;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -48,34 +49,51 @@ public class AuthService {
         this.jwtService = jwtService;
     }
 
+    @Transactional
     public String register(RegisterRequest request) {
 
         String email = request.email().trim().toLowerCase();
 
-        if (userRepository.existsByEmailIgnoreCase(email)) {
-            throw new IllegalArgumentException(
-                    "An account with this email already exists."
-            );
+        Optional<User> existingUserOpt = userRepository.findByEmailIgnoreCase(email);
+
+        User user;
+        if (existingUserOpt.isPresent()) {
+            User existing = existingUserOpt.get();
+            if (existing.isEmailVerified()) {
+                throw new IllegalArgumentException(
+                        "An account with this email already exists. Please log in."
+                );
+            }
+
+            // User previously attempted registration but never completed verification.
+            // Update details and issue a fresh verification code.
+            existing.setFullName(request.fullName().trim());
+            existing.setPhone(request.phone().trim());
+            existing.setPassword(passwordEncoder.encode(request.password()));
+            existing.setActive(true);
+            user = userRepository.save(existing);
+        } else {
+            user = User.builder()
+                    .fullName(request.fullName().trim())
+                    .email(email)
+                    .phone(request.phone().trim())
+                    .password(passwordEncoder.encode(request.password()))
+                    .emailVerified(false)
+                    .active(true)
+                    .role("CUSTOMER")
+                    .build();
+
+            user = userRepository.save(user);
         }
-
-        User user = User.builder()
-                .fullName(request.fullName().trim())
-                .email(email)
-                .phone(request.phone().trim())
-                .password(passwordEncoder.encode(request.password()))
-                .emailVerified(false)
-                .active(true)
-                .build();
-
-        userRepository.save(user);
 
         String code = generateVerificationCode();
 
-        EmailVerification verification = EmailVerification.builder()
-                .user(user)
-                .code(code)
-                .expiresAt(LocalDateTime.now().plusMinutes(10))
-                .build();
+        final User targetUser = user;
+        EmailVerification verification = verificationRepository.findByUser(targetUser)
+                .orElseGet(() -> EmailVerification.builder().user(targetUser).build());
+
+        verification.setCode(code);
+        verification.setExpiresAt(LocalDateTime.now().plusMinutes(5));
 
         verificationRepository.save(verification);
 
@@ -121,6 +139,7 @@ public class AuthService {
         return "Password reset code has been sent to your email.";
     }
 
+    @Transactional
     public String verifyEmail(VerifyEmailRequest request) {
 
         String email = request.email().trim().toLowerCase();
@@ -138,7 +157,7 @@ public class AuthService {
                 verificationRepository.findByUser(user)
                         .orElseThrow(() ->
                                 new IllegalArgumentException(
-                                        "Verification code not found."
+                                        "Verification code not found. Please request a new code."
                                 )
                         );
 
@@ -147,7 +166,7 @@ public class AuthService {
             verificationRepository.deleteByUser(user);
 
             throw new IllegalArgumentException(
-                    "Verification code has expired."
+                    "Verification code has expired. Please request a new code."
             );
         }
 
@@ -163,6 +182,35 @@ public class AuthService {
         verificationRepository.deleteByUser(user);
 
         return "Email verified successfully.";
+    }
+
+    @Transactional
+    public String resendVerificationCode(String emailInput) {
+
+        String email = emailInput.trim().toLowerCase();
+
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("No account found with this email address.")
+                );
+
+        if (user.isEmailVerified()) {
+            throw new IllegalArgumentException("This email is already verified. Please log in.");
+        }
+
+        String code = generateVerificationCode();
+
+        EmailVerification verification = verificationRepository.findByUser(user)
+                .orElseGet(() -> EmailVerification.builder().user(user).build());
+
+        verification.setCode(code);
+        verification.setExpiresAt(LocalDateTime.now().plusMinutes(5));
+
+        verificationRepository.save(verification);
+
+        emailService.sendVerificationCode(user.getEmail(), code);
+
+        return "A new verification code has been sent to your email.";
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -195,14 +243,16 @@ public class AuthService {
 
         String token = jwtService.generateToken(
                 user.getId(),
-                user.getEmail()
+                user.getEmail(),
+                user.getRole()
         );
 
         return new AuthResponse(
                 token,
                 user.getId(),
                 user.getFullName(),
-                user.getEmail()
+                user.getEmail(),
+                user.getRole()
         );
     }
 

@@ -21,7 +21,7 @@ public class EmailService {
         message.setSubject("LeeCraft Email Verification");
         message.setText(
                 "Your LeeCraft verification code is: " + code +
-                        "\n\nThis code will expire shortly."
+                        "\n\nThis code will expire in 5 minutes."
         );
 
         mailSender.send(message);

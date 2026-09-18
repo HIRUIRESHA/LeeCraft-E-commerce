@@ -25,5 +25,5 @@ import { ToastComponent } from './shared/toast/toast.component';
   `],
 })
 export class AppComponent {
-  title = 'leecraft-cutting-boards';
+  title = 'frontend';
 }
