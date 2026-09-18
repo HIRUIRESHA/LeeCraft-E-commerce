@@ -72,8 +72,16 @@ public class SecurityConfig {
 
                 CorsConfiguration configuration = new CorsConfiguration();
 
-                configuration.setAllowedOrigins(
-                                List.of("http://localhost:4200"));
+        configuration.setAllowedOrigins(
+<<<<<<<<< Temporary merge branch 1
+                List.of("http://localhost:4200", "http://localhost:4300")
+=========
+                List.of(
+                        "http://localhost:4200",
+                        "http://localhost:4300"
+                )
+>>>>>>>>> Temporary merge branch 2
+        );
 
                 configuration.setAllowedMethods(
                                 List.of(
