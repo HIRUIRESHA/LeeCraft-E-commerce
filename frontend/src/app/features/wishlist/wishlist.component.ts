@@ -95,7 +95,7 @@ export class WishlistComponent {
   private readonly wishlistService = inject(WishlistService);
   readonly items = this.wishlistService.items;
 
-  remove(productId: string): void {
+  remove(productId: number): void {
     this.wishlistService.removeFromWishlist(productId);
   }
 }
