@@ -19,11 +19,21 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
         AND (:categoryId IS NULL OR p.category.id = :categoryId)
         AND (:minPrice IS NULL OR p.price >= :minPrice)
         AND (:maxPrice IS NULL OR p.price <= :maxPrice)
+        AND (:material IS NULL OR p.material = :material)
+        AND (:size IS NULL OR p.size = :size)
+        AND (:shape IS NULL OR p.shape = :shape)
+        AND (:color IS NULL OR p.color = :color)
+        AND (:inStockOnly = false OR p.stockQuantity > 0)
         """)
     List<Product> searchProducts(
             @Param("keyword") String keyword,
             @Param("categoryId") Long categoryId,
             @Param("minPrice") BigDecimal minPrice,
-            @Param("maxPrice") BigDecimal maxPrice
+            @Param("maxPrice") BigDecimal maxPrice,
+            @Param("material") String material,
+            @Param("size") String size,
+            @Param("shape") String shape,
+            @Param("color") String color,
+            @Param("inStockOnly") boolean inStockOnly
     );
 }

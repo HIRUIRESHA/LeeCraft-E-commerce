@@ -1,11 +1,14 @@
 import { Component } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+
 
 /** URL of the customer-facing storefront app (separate Angular project/port). */
-const STOREFRONT_URL = 'http://localhost:4200';
+const STOREFRONT_URL = 'http://localhost:4300';
 
 @Component({
   selector: 'app-header',
   standalone: true,
+  imports: [RouterLink, RouterLinkActive],
   template: `
     <div class="topbar">Free island-wide delivery on orders over Rs. 8,000 &nbsp;&bull;&nbsp; Handcrafted in Sri Lanka</div>
     <header class="site">
@@ -15,11 +18,10 @@ const STOREFRONT_URL = 'http://localhost:4200';
           <span class="name serif">LeeCraft<span style="color:var(--wood-400)">.lk</span></span>
         </a>
         <nav class="navlinks">
-          <a [href]="storefrontUrl">Home</a>
-          <a [href]="storefrontUrl + '/shop'">Shop</a>
-          <a [href]="storefrontUrl + '/about'">About</a>
-          <a [href]="storefrontUrl + '/contact'">Contact</a>
-          <a [href]="storefrontUrl + '/account'">Account</a>
+          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
+          <a routerLink="/products" routerLinkActive="active">Products</a>
+          <a routerLink="/categories" routerLinkActive="active">Categories</a>
+          <a routerLink="/inventory" routerLinkActive="active">Inventory</a>
         </nav>
         <div class="navicons">
           <span class="admin-pill">Admin</span>

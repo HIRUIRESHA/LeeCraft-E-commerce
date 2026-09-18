@@ -33,8 +33,10 @@ public class ProductService {
         return toResponse(product);
     }
 
-    public List<ProductResponse> searchProducts(String keyword, Long categoryId, BigDecimal minPrice, BigDecimal maxPrice) {
-        return productRepository.searchProducts(keyword, categoryId, minPrice, maxPrice)
+    public List<ProductResponse> searchProducts(String keyword, Long categoryId, BigDecimal minPrice, BigDecimal maxPrice,
+                                                String material, String size, String shape, String color,
+                                                boolean inStockOnly) {
+        return productRepository.searchProducts(keyword, categoryId, minPrice, maxPrice, material, size, shape, color, inStockOnly)
                 .stream().map(this::toResponse).toList();
     }
 
@@ -47,7 +49,10 @@ public class ProductService {
         product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
         product.setImageUrl(request.getImageUrl());
-        product.setWoodType(request.getWoodType());
+        product.setMaterial(request.getMaterial());
+        product.setSize(request.getSize());
+        product.setShape(request.getShape());
+        product.setColor(request.getColor());
         product.setStockQuantity(request.getStockQuantity());
         product.setCategory(category);
 
@@ -64,7 +69,10 @@ public class ProductService {
         product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
         product.setImageUrl(request.getImageUrl());
-        product.setWoodType(request.getWoodType());
+        product.setMaterial(request.getMaterial());
+        product.setSize(request.getSize());
+        product.setShape(request.getShape());
+        product.setColor(request.getColor());
         product.setStockQuantity(request.getStockQuantity());
         product.setCategory(category);
 
@@ -88,8 +96,8 @@ public class ProductService {
     private ProductResponse toResponse(Product product) {
         return new ProductResponse(
                 product.getId(), product.getName(), product.getDescription(), product.getPrice(),
-                product.getImageUrl(), product.getWoodType(), product.getStockQuantity(),
-                product.getCategory().getId(), product.getCategory().getName(),
+                product.getImageUrl(), product.getMaterial(), product.getSize(), product.getShape(), product.getColor(),
+                product.getStockQuantity(), product.getCategory().getId(), product.getCategory().getName(),
                 product.getCreatedAt(), product.getUpdatedAt()
         );
     }
