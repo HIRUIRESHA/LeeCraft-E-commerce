@@ -1,4 +1,12 @@
 package com.leecraft.backend.auth.dto;
 
-public class ForgotPasswordRequest {
-}
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+public record ForgotPasswordRequest(
+
+        @NotBlank(message = "Email is required")
+        @Email(message = "Invalid email address")
+        String email
+
+) {}

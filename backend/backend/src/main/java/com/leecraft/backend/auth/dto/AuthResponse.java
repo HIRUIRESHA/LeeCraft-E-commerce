@@ -1,4 +1,8 @@
 package com.leecraft.backend.auth.dto;
 
-public class AuthResponse {
-}
+public record AuthResponse(
+        String token,
+        Long id,
+        String fullName,
+        String email
+) {}
