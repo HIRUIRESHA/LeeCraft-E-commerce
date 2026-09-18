@@ -86,6 +86,7 @@ public class SecurityConfig {
                         "http://localhost:4200",
                         "http://localhost:4300"
                 )
+                List.of("http://localhost:4200", "http://localhost:4300")
         );
 
         configuration.setAllowedMethods(
