@@ -1,6 +1,6 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, Input, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { NotificationService } from '../../core/services/notification.service';
 import { CartService } from '../../core/services/cart.service';
 import { WishlistService } from '../../core/services/wishlist.service';
@@ -71,14 +71,24 @@ import { woodSwatch } from '../../core/utils/wood-swatch';
             }
           </span>
 
-          <button
-            type="button"
-            class="addbtn"
-            [disabled]="!product.inStock"
-            (click)="onAdd($event)"
-          >
-            {{ product.inStock ? 'Add' : 'Sold Out' }}
-          </button>
+          <div class="prow-actions">
+            <button
+              type="button"
+              class="btn btn-outline btn-sm"
+              (click)="onView($event)"
+            >
+              View
+            </button>
+
+            <button
+              type="button"
+              class="addbtn"
+              [disabled]="!product.inStock"
+              (click)="onAdd($event)"
+            >
+              {{ product.inStock ? 'Add' : 'Sold Out' }}
+            </button>
+          </div>
         </div>
       </div>
     </a>
@@ -119,6 +129,7 @@ export class ProductCardComponent {
   product!: Product;
 
   private notifications = inject(NotificationService);
+  private router = inject(Router);
   private cartService = inject(CartService);
   private wishlistService = inject(WishlistService);
 
@@ -165,5 +176,12 @@ export class ProductCardComponent {
 
     this.cartService.addToCart(this.product, 1);
     this.notifications.success(`${this.product.name} added to cart.`);
+  }
+
+  onView(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    console.log('View clicked, navigating to id:', this.product.id);
+    this.router.navigate(['/product', this.product.id]);
   }
 }

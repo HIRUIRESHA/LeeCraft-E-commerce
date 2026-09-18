@@ -26,7 +26,10 @@ import { woodSwatch } from '../../core/utils/wood-swatch';
             </div>
           </div>
           <div class="pd-info">
-            <div class="eyebrow">{{ p.material }} &middot; {{ p.size }}</div>
+            <div class="eyebrow">
+              {{ p.material }} &middot; {{ p.size }} &middot;
+              {{ p.shape }} &middot; {{ p.color }}
+            </div>
             <h1 class="serif">{{ p.name }}</h1>
             <div class="pd-price">
               <span class="now">Rs. {{ p.price | number }}</span>
@@ -35,6 +38,13 @@ import { woodSwatch } from '../../core/utils/wood-swatch';
               }
             </div>
             <p class="pd-desc-short">{{ p.description }}</p>
+
+            <ul class="pd-specs">
+              <li><strong>Material:</strong> {{ p.material }}</li>
+              <li><strong>Size:</strong> {{ p.size }}</li>
+              <li><strong>Shape:</strong> {{ p.shape }}</li>
+              <li><strong>Color:</strong> {{ p.color }}</li>
+            </ul>
 
             <div class="qty-row">
               <div class="qty-stepper">
