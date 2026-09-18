@@ -1,38 +1,95 @@
 import { Routes } from '@angular/router';
+import { adminAuthGuard } from './guards/admin-auth.guard';
 
 export const routes: Routes = [
   {
-    path: '',
-    loadComponent: () => import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
+    path: 'login',
+    loadComponent: () =>
+      import('./features/login/admin-login.component').then(
+        (m) => m.AdminLoginComponent
+      ),
+    title: 'Admin Login — LeeCraft.lk',
   },
-
-    {
+  {
+    path: '',
+    canActivate: [adminAuthGuard],
+    loadComponent: () =>
+      import('./features/dashboard/dashboard.component').then(
+        (m) => m.DashboardComponent
+      ),
+    title: 'Dashboard — LeeCraft Admin',
+  },
+  {
     path: 'categories',
-    loadComponent: () => import('./features/categories/categories.component').then((m) => m.CategoriesComponent),
+    canActivate: [adminAuthGuard],
+    loadComponent: () =>
+      import('./features/categories/categories.component').then(
+        (m) => m.CategoriesComponent
+      ),
+    title: 'Categories — LeeCraft Admin',
   },
   {
     path: 'categories/new',
-    loadComponent: () => import('./features/categories/category-form.component').then((m) => m.CategoryFormComponent),
+    canActivate: [adminAuthGuard],
+    loadComponent: () =>
+      import('./features/categories/category-form.component').then(
+        (m) => m.CategoryFormComponent
+      ),
+    title: 'New Category — LeeCraft Admin',
   },
   {
     path: 'categories/:id/edit',
-    loadComponent: () => import('./features/categories/category-form.component').then((m) => m.CategoryFormComponent),
+    canActivate: [adminAuthGuard],
+    loadComponent: () =>
+      import('./features/categories/category-form.component').then(
+        (m) => m.CategoryFormComponent
+      ),
+    title: 'Edit Category — LeeCraft Admin',
   },
   {
     path: 'products',
-    loadComponent: () => import('./features/products/products.component').then((m) => m.ProductsComponent),
+    canActivate: [adminAuthGuard],
+    loadComponent: () =>
+      import('./features/products/products.component').then(
+        (m) => m.ProductsComponent
+      ),
+    title: 'Products — LeeCraft Admin',
   },
   {
     path: 'products/new',
-    loadComponent: () => import('./features/products/product-form.component').then((m) => m.ProductFormComponent),
+    canActivate: [adminAuthGuard],
+    loadComponent: () =>
+      import('./features/products/product-form.component').then(
+        (m) => m.ProductFormComponent
+      ),
+    title: 'New Product — LeeCraft Admin',
   },
   {
     path: 'products/:id/edit',
-    loadComponent: () => import('./features/products/product-form.component').then((m) => m.ProductFormComponent),
+    canActivate: [adminAuthGuard],
+    loadComponent: () =>
+      import('./features/products/product-form.component').then(
+        (m) => m.ProductFormComponent
+      ),
+    title: 'Edit Product — LeeCraft Admin',
   },
   {
     path: 'inventory',
-    loadComponent: () => import('./features/inventory/inventory.component').then((m) => m.InventoryComponent),
+    canActivate: [adminAuthGuard],
+    loadComponent: () =>
+      import('./features/inventory/inventory.component').then(
+        (m) => m.InventoryComponent
+      ),
+    title: 'Inventory — LeeCraft Admin',
+  },
+  {
+    path: 'customers',
+    canActivate: [adminAuthGuard],
+    loadComponent: () =>
+      import('./features/customers/customers.component').then(
+        (m) => m.CustomersComponent
+      ),
+    title: 'Customers — LeeCraft Admin',
   },
   { path: '**', redirectTo: '' },
 ];

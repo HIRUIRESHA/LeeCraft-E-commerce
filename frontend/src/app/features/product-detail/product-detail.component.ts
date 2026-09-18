@@ -184,9 +184,10 @@ export class ProductDetailComponent implements OnInit {
   }
 
   addToCart(product: Product): void {
-    this.cart.addToCart(product, this.qty());
-    //   this.cart.add(product, this.qty());
-    this.notifications.success(`${product.name} added to cart.`);
+    const added = this.cart.addToCart(product, this.qty());
+    if (added) {
+      this.notifications.success(`${product.name} added to cart.`);
+    }
   }
 
   swatch(color: string): string {
@@ -194,8 +195,9 @@ export class ProductDetailComponent implements OnInit {
   }
 
   buyNow(product: Product): void {
-    this.cart.addToCart(product, this.qty());
-    //   this.cart.add(product, this.qty());
-    this.router.navigate(['/checkout']);
+    const added = this.cart.addToCart(product, this.qty());
+    if (added) {
+      this.router.navigate(['/checkout']);
+    }
   }
 }

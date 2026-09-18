@@ -1,4 +1,3 @@
-
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -39,6 +38,22 @@ import { AuthService } from '../../../core/services/auth.service';
 
       </div>
 
+      @if (errorMessage) {
+        <div style="
+          max-width:380px;
+          background:#FBEAE8;
+          color:var(--danger);
+          border:1px solid #f0c3be;
+          padding:12px 16px;
+          border-radius:4px;
+          margin-bottom:20px;
+          font-size:13.5px;
+          line-height:1.5;
+        ">
+          {{ errorMessage }}
+        </div>
+      }
+
       <form
         [formGroup]="form"
         (ngSubmit)="submit()"
@@ -51,6 +66,7 @@ import { AuthService } from '../../../core/services/auth.service';
           <input
             type="text"
             formControlName="fullName"
+            placeholder="John Doe"
           />
         </div>
 
@@ -60,6 +76,7 @@ import { AuthService } from '../../../core/services/auth.service';
           <input
             type="email"
             formControlName="email"
+            placeholder="name@example.com"
           />
         </div>
 
@@ -74,40 +91,49 @@ import { AuthService } from '../../../core/services/auth.service';
         </div>
 
         <div class="field">
-  <label>Password</label>
+          <label>Password</label>
 
-  <div style="position:relative;">
-    <input
-      [type]="showPassword ? 'text' : 'password'"
-      formControlName="password"
-      style="padding-right:60px;"
-    />
+          <div style="position:relative;">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+              style="padding-right:60px;"
+            />
 
-    <button
-      type="button"
-      (click)="showPassword = !showPassword"
-      style="
-        position:absolute;
-        right:10px;
-        top:50%;
-        transform:translateY(-50%);
-        border:none;
-        background:none;
-        cursor:pointer;
-      "
-    >
-      {{ showPassword ? 'Hide' : 'Show' }}
-    </button>
-  </div>
-</div>
+            <button
+              type="button"
+              (click)="showPassword = !showPassword"
+              style="
+                position:absolute;
+                right:10px;
+                top:50%;
+                transform:translateY(-50%);
+                border:none;
+                background:none;
+                cursor:pointer;
+                color:var(--wood-500);
+                font-size:12px;
+              "
+            >
+              {{ showPassword ? 'Hide' : 'Show' }}
+            </button>
+          </div>
+        </div>
 
         <button
           type="submit"
           class="btn btn-primary btn-block"
-          [disabled]="form.invalid"
+          [disabled]="form.invalid || isSubmitting"
         >
-          Create Account
+          {{ isSubmitting ? 'Creating Account...' : 'Create Account' }}
         </button>
+
+        <p style="margin-top:15px;font-size:13px;color:var(--wood-700);">
+          Already have an account?
+          <a routerLink="/account/login" style="font-weight:500;">
+            Log In
+          </a>
+        </p>
 
       </form>
 
@@ -120,7 +146,9 @@ export class RegisterComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
 
-   showPassword = false;
+  showPassword = false;
+  isSubmitting = false;
+  errorMessage: string | null = null;
 
   form = this.fb.group({
 
@@ -161,6 +189,9 @@ export class RegisterComponent {
       return;
     }
 
+    this.errorMessage = null;
+    this.isSubmitting = true;
+
     const data = this.form.getRawValue();
 
     this.auth
@@ -175,6 +206,7 @@ export class RegisterComponent {
       .subscribe({
 
         next: () => {
+          this.isSubmitting = false;
 
           this.router.navigate(
             ['/account/verify'],
@@ -188,16 +220,27 @@ export class RegisterComponent {
         },
 
         error: (error) => {
+          this.isSubmitting = false;
 
           console.error(
             'Registration failed:',
             error
           );
 
-          alert(
-            error?.error ||
-            'Registration failed.'
-          );
+          let msg =
+            error?.error?.message ||
+            (typeof error?.error === 'string' ? error.error : null) ||
+            error?.message ||
+            'Registration failed.';
+
+          if (error?.error?.fieldErrors) {
+            const keys = Object.keys(error.error.fieldErrors);
+            if (keys.length > 0) {
+              msg = error.error.fieldErrors[keys[0]];
+            }
+          }
+
+          this.errorMessage = msg;
 
         }
 
