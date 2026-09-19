@@ -7,6 +7,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -16,37 +19,29 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
 @Configuration
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     public SecurityConfig(
-            JwtAuthenticationFilter jwtAuthenticationFilter
-    ) {
+            JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(
-            HttpSecurity http
-    ) throws Exception {
+            HttpSecurity http) throws Exception {
 
         http
                 .csrf(csrf -> csrf.disable())
 
                 .cors(cors -> cors.configurationSource(
-                        corsConfigurationSource()
-                ))
+                        corsConfigurationSource()))
 
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
-                                SessionCreationPolicy.STATELESS
-                        )
-                )
+                                SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
 
@@ -58,19 +53,17 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**")
                         .hasRole("ADMIN")
 
-                        // Customer profile & addresses endpoints - authenticated users only
+                        // Customer profile endpoints - authenticated users only
                         .requestMatchers("/api/user/**")
                         .authenticated()
 
                         // Everything else currently public
                         .anyRequest()
-                        .permitAll()
-                )
+                        .permitAll())
 
                 .addFilterBefore(
                         jwtAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class
-                );
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -78,12 +71,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
-        CorsConfiguration configuration = new CorsConfiguration();
+        CorsConfiguration configuration =
+                new CorsConfiguration();
 
         configuration.setAllowedOrigins(
                 List.of(
                         "http://localhost:4200",
-                        "http://localhost:4300"
+                        "http://localhost:4300",
+                        "http://localhost:54425"
                 )
         );
 
@@ -109,8 +104,7 @@ public class SecurityConfig {
 
         source.registerCorsConfiguration(
                 "/**",
-                configuration
-        );
+                configuration);
 
         return source;
     }
