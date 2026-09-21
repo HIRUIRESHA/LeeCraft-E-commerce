@@ -1,9 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { ContactService } from '../../core/services/contact.service';
+import { SiteContentStore } from '../../core/services/site-content.store';
 
 @Component({
   selector: 'app-contact',
@@ -63,13 +65,13 @@ import { NotificationService } from '../../core/services/notification.service';
           ></textarea>
         </div>
 
-        <button class="btn btn-primary" type="submit">
-          Send Message
+        <button class="btn btn-primary" type="submit" [disabled]="sending">
+          {{ sending ? 'Sending…' : 'Send Message' }}
         </button>
       </form>
 
       <p class="reach">
-        Or reach us at <a href="mailto:hello@leecraft.lk">hello&#64;leecraft.lk</a> / +94 77 123 4567
+        Or reach us at <a [href]="'mailto:' + (content.email() || 'hello@leecraft.lk')">{{ content.email() || 'hello@leecraft.lk' }}</a> / {{ content.phone() || '+94 77 123 4567' }}
       </p>
     </section>
   `,
@@ -83,10 +85,18 @@ import { NotificationService } from '../../core/services/notification.service';
     .reach{margin-top:26px;font-size:13.5px;color:var(--wood-700);}
   `],
 })
-export class ContactComponent {
+export class ContactComponent implements OnInit {
   readonly auth = inject(AuthService);
+  readonly content = inject(SiteContentStore);
   private readonly notify = inject(NotificationService);
   private readonly router = inject(Router);
+  private readonly contactService = inject(ContactService);
+
+  sending = false;
+
+  ngOnInit(): void {
+    this.content.load();
+  }
 
   submit(form: NgForm): void {
     if (!this.auth.isAuthenticated()) {
@@ -103,7 +113,17 @@ export class ContactComponent {
       return;
     }
 
-    this.notify.success('Message sent — we will get back to you shortly.');
-    form.resetForm();
+    this.sending = true;
+    this.contactService.submit(form.value).subscribe({
+      next: () => {
+        this.sending = false;
+        this.notify.success('Message sent — we will get back to you shortly.');
+        form.resetForm();
+      },
+      error: () => {
+        this.sending = false;
+        this.notify.error('Could not send your message. Please try again.');
+      },
+    });
   }
 }
