@@ -91,5 +91,50 @@ export const routes: Routes = [
       ),
     title: 'Customers — LeeCraft Admin',
   },
+  {
+    path: 'inquiries',
+    canActivate: [adminAuthGuard],
+    loadComponent: () =>
+      import('./features/inquiries/inquiries.component').then(
+        (m) => m.InquiriesComponent
+      ),
+    title: 'Inquiries — LeeCraft Admin',
+  },
+  {
+    path: 'banners',
+    canActivate: [adminAuthGuard],
+    loadComponent: () =>
+      import('./features/banners/banners.component').then(
+        (m) => m.BannersComponent
+      ),
+    title: 'Banners — LeeCraft Admin',
+  },
+  {
+    path: 'banners/new',
+    canActivate: [adminAuthGuard],
+    loadComponent: () =>
+      import('./features/banners/banner-form.component').then(
+        (m) => m.BannerFormComponent
+      ),
+    title: 'New Banner — LeeCraft Admin',
+  },
+  {
+    path: 'banners/:id/edit',
+    canActivate: [adminAuthGuard],
+    loadComponent: () =>
+      import('./features/banners/banner-form.component').then(
+        (m) => m.BannerFormComponent
+      ),
+    title: 'Edit Banner — LeeCraft Admin',
+  },
+  {
+    path: 'content',
+    canActivate: [adminAuthGuard],
+    loadComponent: () =>
+      import('./features/content/content.component').then(
+        (m) => m.ContentComponent
+      ),
+    title: 'Site Content — LeeCraft Admin',
+  },
   { path: '**', redirectTo: '' },
 ];
