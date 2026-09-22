@@ -57,9 +57,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/user/**")
                         .authenticated()
 
+                        .requestMatchers("/api/cart/**")
+                        .authenticated()
+
                         // Everything else currently public
                         .anyRequest()
                         .permitAll())
+
+
 
                 .addFilterBefore(
                         jwtAuthenticationFilter,

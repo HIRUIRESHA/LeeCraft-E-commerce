@@ -6,6 +6,31 @@ export interface CartItem {
   quantity: number;
 }
 
+export interface CartState {
+  items: CartItem[];
+  subtotal: number;
+  shipping: number;
+  total: number;
+  itemCount: number;
+}
+
+export interface CartSummary {
+  subtotal: number;
+  shipping: number;
+  total: number;
+  itemCount: number;
+}
+
+export interface AddToCartRequest {
+  productId: number;
+  quantity: number;
+}
+
+export interface UpdateCartRequest {
+  quantity: number;
+}
+
+// Keep these because wishlist.service.ts uses them
 export interface WishlistItem {
   productId: number;
   name: string;
@@ -13,20 +38,7 @@ export interface WishlistItem {
   image?: string;
 }
 
-export interface CartState {
-  items: CartItem[];
-  subtotal: number;
-  total: number;
-  itemCount: number;
-}
-
 export interface WishlistState {
   items: WishlistItem[];
-  itemCount: number;
-}
-
-export interface CartSummary {
-  subtotal: number;
-  total: number;
   itemCount: number;
 }
