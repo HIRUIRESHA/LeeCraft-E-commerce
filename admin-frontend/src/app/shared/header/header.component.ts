@@ -21,6 +21,7 @@ const STOREFRONT_URL = 'http://localhost:4300';
           <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
           <a routerLink="/products" routerLinkActive="active">Products</a>
           <a routerLink="/categories" routerLinkActive="active">Categories</a>
+          <a routerLink="/promotions" routerLinkActive="active">Promotions</a>
           <a routerLink="/inventory" routerLinkActive="active">Inventory</a>
         </nav>
         <div class="navicons">

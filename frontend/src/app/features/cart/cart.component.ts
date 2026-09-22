@@ -190,15 +190,15 @@ export class CartComponent {
   readonly subtotal = this.cartService.subtotal;
   readonly total = this.cartService.total;
 
-  increase(productId: string): void {
+  increase(productId: number): void {
     this.cartService.increaseQuantity(productId);
   }
 
-  decrease(productId: string): void {
+  decrease(productId: number): void {
     this.cartService.decreaseQuantity(productId);
   }
 
-  remove(productId: string): void {
+  remove(productId: number): void {
     this.cartService.removeFromCart(productId);
   }
 }

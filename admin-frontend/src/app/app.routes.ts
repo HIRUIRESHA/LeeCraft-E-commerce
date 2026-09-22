@@ -31,6 +31,18 @@ export const routes: Routes = [
     loadComponent: () => import('./features/products/product-form.component').then((m) => m.ProductFormComponent),
   },
   {
+    path: 'promotions',
+    loadComponent: () => import('./features/promotions/promotions.component').then((m) => m.PromotionsComponent),
+  },
+  {
+    path: 'promotions/new',
+    loadComponent: () => import('./features/promotions/promotion-form.component').then((m) => m.PromotionFormComponent),
+  },
+  {
+    path: 'promotions/:id/edit',
+    loadComponent: () => import('./features/promotions/promotion-form.component').then((m) => m.PromotionFormComponent),
+  },
+  {
     path: 'inventory',
     loadComponent: () => import('./features/inventory/inventory.component').then((m) => m.InventoryComponent),
   },

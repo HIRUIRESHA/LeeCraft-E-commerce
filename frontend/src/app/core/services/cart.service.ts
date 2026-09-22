@@ -56,16 +56,16 @@ export class CartService {
     this.persist();
   }
 
-  removeFromCart(productId: string): void {
+  removeFromCart(productId: number): void {
     this.cartItemsSignal.set(this.cartItemsSignal().filter((item) => item.productId !== productId));
     this.persist();
   }
 
-  increaseQuantity(productId: string): void {
+  increaseQuantity(productId: number): void {
     this.updateQuantity(productId, 1);
   }
 
-  decreaseQuantity(productId: string): void {
+  decreaseQuantity(productId: number): void {
     const item = this.cartItemsSignal().find((cartItem) => cartItem.productId === productId);
 
     if (!item) {
@@ -89,11 +89,11 @@ export class CartService {
     this.clearCart();
   }
 
-  isInCart(productId: string): boolean {
+  isInCart(productId: number): boolean {
     return this.cartItemsSignal().some((item) => item.productId === productId);
   }
 
-  private updateQuantity(productId: string, change: number): void {
+  private updateQuantity(productId: number, change: number): void {
     this.cartItemsSignal.set(
       this.cartItemsSignal().map((item) =>
         item.productId === productId
