@@ -136,5 +136,32 @@ export const routes: Routes = [
       ),
     title: 'Site Content — LeeCraft Admin',
   },
+  {
+    path: 'promotions',
+    canActivate: [adminAuthGuard],
+    loadComponent: () =>
+      import('./features/promotions/promotions.component').then(
+        (m) => m.PromotionsComponent
+      ),
+    title: 'Promotions — LeeCraft Admin',
+  },
+  {
+    path: 'promotions/new',
+    canActivate: [adminAuthGuard],
+    loadComponent: () =>
+      import('./features/promotions/promotion-form.component').then(
+        (m) => m.PromotionFormComponent
+      ),
+    title: 'New Promotion — LeeCraft Admin',
+  },
+  {
+    path: 'promotions/:id/edit',
+    canActivate: [adminAuthGuard],
+    loadComponent: () =>
+      import('./features/promotions/promotion-form.component').then(
+        (m) => m.PromotionFormComponent
+      ),
+    title: 'Edit Promotion — LeeCraft Admin',
+  },
   { path: '**', redirectTo: '' },
 ];

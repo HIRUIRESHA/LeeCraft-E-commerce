@@ -27,6 +27,7 @@ const STOREFRONT_URL = 'http://localhost:4200';
             <a routerLink="/customers" routerLinkActive="active">Customers</a>
             <a routerLink="/inquiries" routerLinkActive="active">Inquiries</a>
             <a routerLink="/banners" routerLinkActive="active">Banners</a>
+            <a routerLink="/promotions" routerLinkActive="active">Promotions</a>
             <a routerLink="/content" routerLinkActive="active">Content</a>
           </nav>
 

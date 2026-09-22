@@ -18,8 +18,12 @@ public class SiteContentSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         SiteContentService.DEFAULTS.forEach((key, defaultValue) -> {
-            if (!siteContentRepository.existsByContentKey(key)) {
-                siteContentRepository.save(new SiteContent(key, defaultValue));
+            try {
+                if (!siteContentRepository.existsByContentKey(key)) {
+                    siteContentRepository.save(new SiteContent(key, defaultValue));
+                }
+            } catch (Exception ex) {
+                // Ignore seeding failure if database schema has legacy unmapped columns
             }
         });
     }

@@ -255,19 +255,66 @@ type Tab = 'profile' | 'addresses' | 'security';
               <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
 
                 <div class="field">
-                  <label>Current Password</label>
-                  <input type="password" formControlName="currentPassword" />
-                </div>
+  <label>Current Password</label>
 
-                <div class="field">
-                  <label>New Password</label>
-                  <input type="password" formControlName="newPassword" placeholder="Minimum 8 characters" />
-                </div>
+  <div style="display:flex;gap:8px;">
+    <input
+      [type]="showCurrentPassword ? 'text' : 'password'"
+      formControlName="currentPassword"
+      style="flex:1;"
+    />
 
-                <div class="field">
-                  <label>Confirm New Password</label>
-                  <input type="password" formControlName="confirmPassword" placeholder="Confirm your new password" />
-                </div>
+    <button
+      type="button"
+      class="btn btn-outline btn-sm"
+      (click)="showCurrentPassword = !showCurrentPassword"
+    >
+      {{ showCurrentPassword ? 'Hide' : 'Show' }}
+    </button>
+  </div>
+</div>
+
+<div class="field">
+  <label>New Password</label>
+
+  <div style="display:flex;gap:8px;">
+    <input
+      [type]="showNewPassword ? 'text' : 'password'"
+      formControlName="newPassword"
+      placeholder="Minimum 8 characters"
+      style="flex:1;"
+    />
+
+    <button
+      type="button"
+      class="btn btn-outline btn-sm"
+      (click)="showNewPassword = !showNewPassword"
+    >
+      {{ showNewPassword ? 'Hide' : 'Show' }}
+    </button>
+  </div>
+</div>
+
+<div class="field">
+  <label>Confirm New Password</label>
+
+  <div style="display:flex;gap:8px;">
+    <input
+      [type]="showConfirmPassword ? 'text' : 'password'"
+      formControlName="confirmPassword"
+      placeholder="Confirm your new password"
+      style="flex:1;"
+    />
+
+    <button
+      type="button"
+      class="btn btn-outline btn-sm"
+      (click)="showConfirmPassword = !showConfirmPassword"
+    >
+      {{ showConfirmPassword ? 'Hide' : 'Show' }}
+    </button>
+  </div>
+</div>
 
                 <button
                   type="submit"
@@ -303,9 +350,13 @@ export class AccountComponent implements OnInit {
   errorMessage: string | null = null;
 
   isSavingProfile = false;
-  isSavingAddress = false;
-  isChangingPassword = false;
-  showAddressForm = false;
+isSavingAddress = false;
+isChangingPassword = false;
+showAddressForm = false;
+
+showCurrentPassword = false;
+showNewPassword = false;
+showConfirmPassword = false;
 
   profileForm = this.fb.group({
     fullName: ['', Validators.required],
