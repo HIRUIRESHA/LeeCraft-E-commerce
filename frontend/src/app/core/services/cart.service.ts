@@ -1,144 +1,380 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import {
+  Injectable,
+  computed,
+  effect,
+  inject,
+  signal
+} from '@angular/core';
 import { Router } from '@angular/router';
-import { CartItem, CartSummary } from '../models/cart.model';
+
+import { environment } from '../../../environments/environment';
+
+import {
+  AddToCartRequest,
+  CartState,
+  CartSummary,
+  UpdateCartRequest
+} from '../models/cart.model';
+
 import { Product } from '../models/product.model';
 import { AuthService } from './auth.service';
-import { NotificationService } from './notification.service';
-
-const STORAGE_KEY = 'leecraft_cart';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class CartService {
-  private readonly auth = inject(AuthService);
+
+  private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  private readonly notify = inject(NotificationService);
+  private readonly authService = inject(AuthService);
 
-  private readonly cartItemsSignal = signal<CartItem[]>(this.loadFromStorage());
+  private readonly apiUrl = `${environment.apiUrl}/cart`;
 
-  readonly items = this.cartItemsSignal.asReadonly();
-  readonly cartItems = this.cartItemsSignal.asReadonly();
-  readonly itemCount = computed(() => this.cartItemsSignal().reduce((sum, item) => sum + item.quantity, 0));
-  readonly subtotal = computed(() =>
-    this.cartItemsSignal().reduce((sum, item) => sum + item.price * item.quantity, 0),
-  );
-  readonly shipping = computed(() => (this.subtotal() >= 8000 ? 0 : 400));
-  readonly total = computed(() => this.subtotal() + this.shipping());
+  private readonly cartState = signal<CartState>({
+    items: [],
+    subtotal: 0,
+    shipping: 0,
+    total: 0,
+    itemCount: 0
+  });
+
+  // -----------------------------
+  // Watch authentication changes
+  // -----------------------------
+
+  constructor() {
+    effect(() => {
+      const authenticated = this.authService.isAuthenticated();
+
+      if (authenticated) {
+        // User logged in or session restored after refresh
+        this.loadCart();
+      } else {
+        // User logged out
+        this.clearCartState();
+      }
+    });
+  }
+
+  // -----------------------------
+  // Public cart signals
+  // -----------------------------
+
+  readonly items = computed(() => this.cartState().items);
+
+  readonly cartItems = computed(() => this.cartState().items);
+
+  readonly itemCount = computed(() => this.cartState().itemCount);
+
+  readonly subtotal = computed(() => this.cartState().subtotal);
+
+  readonly shipping = computed(() => this.cartState().shipping);
+
+  readonly total = computed(() => this.cartState().total);
+
   readonly summary = computed<CartSummary>(() => ({
-    subtotal: this.subtotal(),
-    total: this.total(),
-    itemCount: this.itemCount(),
+    subtotal: this.cartState().subtotal,
+    shipping: this.cartState().shipping,
+    total: this.cartState().total,
+    itemCount: this.cartState().itemCount
   }));
 
-  addToCart(product: Product, quantity: number = 1): boolean {
-    if (!this.auth.isAuthenticated()) {
-      this.notify.error('Please log in to add items to your cart.');
-      this.router.navigate(['/account/login'], {
-        queryParams: { returnUrl: this.router.url },
-      });
-      return false;
+  // -----------------------------
+  // Load cart from backend
+  // -----------------------------
+
+  loadCart(): void {
+
+    if (!this.authService.isAuthenticated()) {
+      this.clearCartState();
+      return;
     }
 
-    if (!product || quantity <= 0) {
-      return false;
-    }
+    this.http
+      .get<CartState>(this.apiUrl)
+      .subscribe({
 
-    const current = this.cartItemsSignal();
-    const existingItem = current.find((item) => item.productId === product.id);
-
-    if (existingItem) {
-      this.cartItemsSignal.set(
-        current.map((item) =>
-          item.productId === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item,
-        ),
-      );
-    } else {
-      this.cartItemsSignal.set([
-        ...current,
-        {
-          productId: product.id,
-          name: product.name,
-          price: product.price,
-          image: product.image,
-          quantity,
+        next: (cart: CartState) => {
+          this.cartState.set(cart);
         },
-      ]);
+
+        error: (error: HttpErrorResponse) => {
+
+          console.error(
+            'Failed to load cart:',
+            error
+          );
+
+          if (error.status === 401) {
+            this.clearCartState();
+          }
+        }
+
+      });
+  }
+
+  // -----------------------------
+  // Add product to cart
+  // -----------------------------
+
+  addToCart(
+    product: Product,
+    quantity: number = 1
+  ): void {
+
+    if (!this.authService.isAuthenticated()) {
+
+      this.router.navigate(['/account/login'], {
+        queryParams: {
+          returnUrl: this.router.url
+        }
+      });
+
+      return;
     }
 
-    this.persist();
-    return true;
+    const request: AddToCartRequest = {
+      productId: product.id,
+      quantity: quantity
+    };
+
+    this.http
+      .post<CartState>(
+        `${this.apiUrl}/items`,
+        request
+      )
+      .subscribe({
+
+        next: (cart: CartState) => {
+          this.cartState.set(cart);
+        },
+
+        error: (error: HttpErrorResponse) => {
+
+          console.error(
+            'Failed to add product to cart:',
+            error
+          );
+
+          if (error.status === 401) {
+
+            this.authService.logout();
+
+            this.router.navigate(['/account/login'], {
+              queryParams: {
+                returnUrl: this.router.url
+              }
+            });
+
+            return;
+          }
+
+          const message =
+            error.error?.message ||
+            'Unable to add product to cart.';
+
+          alert(message);
+        }
+
+      });
   }
+
+  // -----------------------------
+  // Remove product
+  // -----------------------------
 
   removeFromCart(productId: number): void {
-    this.cartItemsSignal.set(this.cartItemsSignal().filter((item) => item.productId !== productId));
-    this.persist();
+
+    if (!this.authService.isAuthenticated()) {
+      this.clearCartState();
+      return;
+    }
+
+    this.http
+      .delete<CartState>(
+        `${this.apiUrl}/items/${productId}`
+      )
+      .subscribe({
+
+        next: (cart: CartState) => {
+          this.cartState.set(cart);
+        },
+
+        error: (error: HttpErrorResponse) => {
+
+          console.error(
+            'Failed to remove product from cart:',
+            error
+          );
+
+          const message =
+            error.error?.message ||
+            'Unable to remove product from cart.';
+
+          alert(message);
+        }
+
+      });
   }
+
+  // -----------------------------
+  // Increase quantity
+  // -----------------------------
 
   increaseQuantity(productId: number): void {
-    this.updateQuantity(productId, 1);
+
+    const item = this.cartState()
+      .items
+      .find(
+        item => item.productId === productId
+      );
+
+    if (!item) {
+      return;
+    }
+
+    this.updateQuantity(
+      productId,
+      item.quantity + 1
+    );
   }
 
+  // -----------------------------
+  // Decrease quantity
+  // -----------------------------
+
   decreaseQuantity(productId: number): void {
-    const item = this.cartItemsSignal().find((cartItem) => cartItem.productId === productId);
+
+    const item = this.cartState()
+      .items
+      .find(
+        item => item.productId === productId
+      );
 
     if (!item) {
       return;
     }
 
     if (item.quantity <= 1) {
+
       this.removeFromCart(productId);
+
       return;
     }
 
-    this.updateQuantity(productId, -1);
+    this.updateQuantity(
+      productId,
+      item.quantity - 1
+    );
   }
+
+  // -----------------------------
+  // Update quantity
+  // -----------------------------
+
+  private updateQuantity(
+    productId: number,
+    quantity: number
+  ): void {
+
+    if (!this.authService.isAuthenticated()) {
+      this.clearCartState();
+      return;
+    }
+
+    const request: UpdateCartRequest = {
+      quantity: quantity
+    };
+
+    this.http
+      .put<CartState>(
+        `${this.apiUrl}/items/${productId}`,
+        request
+      )
+      .subscribe({
+
+        next: (cart: CartState) => {
+          this.cartState.set(cart);
+        },
+
+        error: (error: HttpErrorResponse) => {
+
+          console.error(
+            'Failed to update cart quantity:',
+            error
+          );
+
+          const message =
+            error.error?.message ||
+            'Unable to update cart quantity.';
+
+          alert(message);
+        }
+
+      });
+  }
+
+  // -----------------------------
+  // Clear entire cart
+  // -----------------------------
 
   clearCart(): void {
-    this.cartItemsSignal.set([]);
-    this.persist();
+
+    if (!this.authService.isAuthenticated()) {
+      this.clearCartState();
+      return;
+    }
+
+    this.http
+      .delete<void>(this.apiUrl)
+      .subscribe({
+
+        next: () => {
+          this.clearCartState();
+        },
+
+        error: (error: HttpErrorResponse) => {
+
+          console.error(
+            'Failed to clear cart:',
+            error
+          );
+        }
+
+      });
   }
 
+  // Keep this method for existing components
   clear(): void {
     this.clearCart();
   }
 
+  // -----------------------------
+  // Check whether product is in cart
+  // -----------------------------
+
   isInCart(productId: number): boolean {
-    return this.cartItemsSignal().some((item) => item.productId === productId);
+
+    return this.cartState()
+      .items
+      .some(
+        item => item.productId === productId
+      );
   }
 
-  private updateQuantity(productId: number, change: number): void {
-    this.cartItemsSignal.set(
-      this.cartItemsSignal().map((item) =>
-        item.productId === productId
-          ? { ...item, quantity: Math.max(0, item.quantity + change) }
-          : item,
-      ).filter((item) => item.quantity > 0),
-    );
+  // -----------------------------
+  // Clear local Angular state
+  // -----------------------------
 
-    this.persist();
-  }
+  private clearCartState(): void {
 
-  private persist(): void {
-    const value = JSON.stringify(this.cartItemsSignal());
-
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, value);
-    }
-  }
-
-  private loadFromStorage(): CartItem[] {
-    if (typeof localStorage === 'undefined') {
-      return [];
-    }
-
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? (JSON.parse(stored) as CartItem[]) : [];
-    } catch {
-      return [];
-    }
+    this.cartState.set({
+      items: [],
+      subtotal: 0,
+      shipping: 0,
+      total: 0,
+      itemCount: 0
+    });
   }
 }
