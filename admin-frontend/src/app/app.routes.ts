@@ -74,6 +74,18 @@ export const routes: Routes = [
     title: 'Edit Product — LeeCraft Admin',
   },
   {
+    path: 'promotions',
+    loadComponent: () => import('./features/promotions/promotions.component').then((m) => m.PromotionsComponent),
+  },
+  {
+    path: 'promotions/new',
+    loadComponent: () => import('./features/promotions/promotion-form.component').then((m) => m.PromotionFormComponent),
+  },
+  {
+    path: 'promotions/:id/edit',
+    loadComponent: () => import('./features/promotions/promotion-form.component').then((m) => m.PromotionFormComponent),
+  },
+  {
     path: 'inventory',
     canActivate: [adminAuthGuard],
     loadComponent: () =>
