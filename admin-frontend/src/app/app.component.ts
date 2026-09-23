@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './shared/header/header.component';
 import { FooterComponent } from './shared/footer/footer.component';
+import { AdminAuthService } from './services/admin-auth.service';
+import { AdminUiService } from './services/admin-ui.service';
 
 @Component({
   selector: 'app-root',
@@ -12,4 +14,6 @@ import { FooterComponent } from './shared/footer/footer.component';
 })
 export class AppComponent {
   title = 'admin-frontend';
+  readonly adminAuth = inject(AdminAuthService);
+  readonly ui = inject(AdminUiService);
 }

@@ -1,3 +1,11 @@
-<app-header />
-<router-outlet />
-<app-footer />
+<div
+  class="admin-layout"
+  [class.authenticated]="adminAuth.isAuthenticated()"
+  [class.sidebar-collapsed]="ui.isSidebarCollapsed()"
+>
+  <app-header />
+  <div class="admin-main-container">
+    <router-outlet />
+    <app-footer />
+  </div>
+</div>
