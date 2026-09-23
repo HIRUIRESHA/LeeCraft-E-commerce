@@ -6,8 +6,11 @@ import com.leecraft.backend.product.repository.ProductRepository;
 import com.leecraft.backend.review.dto.ProductReviewSummary;
 import com.leecraft.backend.review.dto.ReviewRequest;
 import com.leecraft.backend.review.dto.ReviewResponse;
+import com.leecraft.backend.review.dto.StoreReviewSummary;
 import com.leecraft.backend.review.model.Review;
 import com.leecraft.backend.review.repository.ReviewRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,6 +74,32 @@ public class ReviewService {
         );
     }
 
+    @Transactional(readOnly = true)
+    public StoreReviewSummary getStoreReviewSummary(int limit) {
+        int safeLimit = Math.max(1, Math.min(limit, 30));
+        Pageable pageable = PageRequest.of(0, safeLimit);
+        List<Review> topReviews = reviewRepository.findTopReviews(pageable);
+
+        Double rawAvg = reviewRepository.getOverallAverageRating();
+        double avgRating = (rawAvg != null && rawAvg > 0)
+                ? BigDecimal.valueOf(rawAvg).setScale(1, RoundingMode.HALF_UP).doubleValue()
+                : 5.0;
+
+        long totalCount = reviewRepository.count();
+        long fiveStarCount = reviewRepository.countFiveStarReviews();
+
+        List<ReviewResponse> reviewResponses = topReviews.stream()
+                .map(ReviewResponse::from)
+                .toList();
+
+        return new StoreReviewSummary(
+                avgRating,
+                totalCount,
+                fiveStarCount,
+                reviewResponses
+        );
+    }
+
     @Transactional
     public ReviewResponse addReview(Long productId, ReviewRequest request) {
         Product product = productRepository.findById(productId)
@@ -97,3 +126,4 @@ public class ReviewService {
         return ReviewResponse.from(saved);
     }
 }
+
