@@ -15,7 +15,10 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
         Your order <strong>#{{ orderId }}</strong> has been placed. Our team will contact you shortly via your
         preferred contact method to confirm details and arrange payment.
       </p>
-      <div style="display:flex;gap:12px;justify-content:center;margin-top:24px;">
+      <div style="display:flex;gap:12px;justify-content:center;margin-top:24px;flex-wrap:wrap;">
+        <a [routerLink]="['/track-order']" [queryParams]="{ orderNumber: orderId }" class="btn btn-outline">
+          🚚 Track Order Status
+        </a>
         <a routerLink="/shop" class="btn btn-primary">Continue Shopping</a>
       </div>
     </div>

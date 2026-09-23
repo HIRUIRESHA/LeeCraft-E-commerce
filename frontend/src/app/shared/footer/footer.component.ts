@@ -40,7 +40,7 @@ import { NotificationService } from '../../core/services/notification.service';
             <a routerLink="/returns">Return &amp; Refund</a>
             <a routerLink="/privacy">Privacy Policy</a>
             <a routerLink="/terms">Terms &amp; Conditions</a>
-            <a routerLink="/track">Track Order</a>
+            <a routerLink="/track-order">Track Order</a>
           </div>
 
           <div>

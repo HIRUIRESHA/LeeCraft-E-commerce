@@ -1,10 +1,11 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { ProductService } from '../../core/services/product.service';
 import { Product } from '../../core/models/product.model';
 import { ProductCardComponent } from './product-card.component';
 
-type SortOption = 'best' | 'price-asc' | 'price-desc' | 'rating';
+type SortOption = 'best' | 'price-asc' | 'price-desc' | 'rating' | 'newest';
 
 const PRICE_RANGES = [
   { label: 'Under Rs. 3,000', min: 0, max: 3000 },
@@ -24,7 +25,7 @@ const PRICE_RANGES = [
         class="serif"
         style="font-size:32px;font-weight:500;margin:10px 0 30px;"
       >
-        All Cutting Boards
+        All Cutting Boards & Crafts
       </h1>
 
       <div class="shop-layout">
@@ -120,7 +121,7 @@ const PRICE_RANGES = [
                 type="text"
                 [value]="query()"
                 (input)="query.set($any($event.target).value)"
-                placeholder="Search cutting boards..."
+                placeholder="Search cutting boards & crafts..."
               />
               <button type="button">
                 <svg
@@ -142,6 +143,7 @@ const PRICE_RANGES = [
                 <option value="price-asc">Price: Low to High</option>
                 <option value="price-desc">Price: High to Low</option>
                 <option value="rating">Customer Rating</option>
+                <option value="newest">Newest Arrivals</option>
               </select>
             </div>
           </div>
@@ -212,14 +214,26 @@ export class ShopComponent implements OnInit {
         return [...list].sort(
           (a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount,
         );
+      case 'newest':
+        return [...list].sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
       default:
         return [...list].sort((a, b) => b.reviewCount - a.reviewCount);
     }
   });
 
-  constructor(private products: ProductService) {}
+  constructor(
+    private products: ProductService,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      const keyword = params.get('keyword');
+      if (keyword !== null) {
+        this.query.set(keyword);
+      }
+    });
+
     this.products.list().subscribe({
       next: (list) => {
         this.all.set(list);

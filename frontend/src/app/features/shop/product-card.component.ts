@@ -185,13 +185,9 @@ export class ProductCardComponent {
   });
 
   starString(): string {
-
-    const full =
-      '★'.repeat(this.product.rating);
-
-    const empty =
-      '☆'.repeat(5 - this.product.rating);
-
+    const r = Math.max(0, Math.min(5, Math.round(this.product.rating || 0)));
+    const full = '★'.repeat(r);
+    const empty = '☆'.repeat(5 - r);
     return full + empty;
   }
 

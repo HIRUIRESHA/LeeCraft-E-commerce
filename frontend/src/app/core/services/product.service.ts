@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { Product } from '../models/product.model';
+import { CreateReviewRequest, Product, ProductReviewSummary, Review } from '../models/product.model';
 
 interface BackendProduct {
   id: number;
@@ -18,6 +18,8 @@ interface BackendProduct {
   stockQuantity: number;
   categoryId: number;
   categoryName: string;
+  rating?: number;
+  reviewCount?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -45,9 +47,9 @@ export class ProductService {
       shape: product.shape,
       color: product.color,
 
-      // Backend currently doesn't have review/rating fields
-      rating: 0,
-      reviewCount: 0,
+      // Real ratings and review counts from backend
+      rating: Number(product.rating ?? 0),
+      reviewCount: Number(product.reviewCount ?? 0),
 
       // Convert stock quantity to frontend boolean
       inStock: product.stockQuantity > 0,
@@ -84,6 +86,7 @@ export class ProductService {
     shape?: string;
     color?: string;
     inStockOnly?: boolean;
+    sort?: string;
   }): Observable<Product[]> {
 
     let httpParams = new HttpParams();
@@ -121,10 +124,11 @@ export class ProductService {
     }
 
     if (params.inStockOnly !== undefined) {
-      httpParams = httpParams.set(
-        'inStockOnly',
-        params.inStockOnly
-      );
+      httpParams = httpParams.set('inStockOnly', params.inStockOnly);
+    }
+
+    if (params.sort) {
+      httpParams = httpParams.set('sort', params.sort);
     }
 
     return this.http
@@ -136,5 +140,37 @@ export class ProductService {
           products.map((product) => this.mapProduct(product))
         )
       );
+  }
+
+  getRelated(id: number): Observable<Product[]> {
+    return this.http
+      .get<BackendProduct[]>(`${this.apiUrl}/${id}/related`)
+      .pipe(
+        map((products) => products.map((product) => this.mapProduct(product)))
+      );
+  }
+
+  autocomplete(keyword: string): Observable<Product[]> {
+    if (!keyword || !keyword.trim()) {
+      return new Observable((obs) => {
+        obs.next([]);
+        obs.complete();
+      });
+    }
+    return this.http
+      .get<BackendProduct[]>(`${this.apiUrl}/autocomplete`, {
+        params: new HttpParams().set('keyword', keyword.trim()),
+      })
+      .pipe(
+        map((products) => products.map((product) => this.mapProduct(product)))
+      );
+  }
+
+  getReviews(productId: number): Observable<ProductReviewSummary> {
+    return this.http.get<ProductReviewSummary>(`${this.apiUrl}/${productId}/reviews`);
+  }
+
+  addReview(productId: number, req: CreateReviewRequest): Observable<Review> {
+    return this.http.post<Review>(`${this.apiUrl}/${productId}/reviews`, req);
   }
 }

@@ -58,10 +58,14 @@ public class Promotion {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "discount_percent", precision = 5, scale = 2)
+    private BigDecimal discountPercent;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        syncDiscountPercent();
         if (this.code != null) {
             this.code = this.code.trim().toUpperCase();
             if (this.code.isEmpty()) {
@@ -73,11 +77,20 @@ public class Promotion {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+        syncDiscountPercent();
         if (this.code != null) {
             this.code = this.code.trim().toUpperCase();
             if (this.code.isEmpty()) {
                 this.code = null;
             }
+        }
+    }
+
+    private void syncDiscountPercent() {
+        if (this.discountType == DiscountType.PERCENTAGE && this.discountValue != null) {
+            this.discountPercent = this.discountValue;
+        } else if (this.discountPercent == null) {
+            this.discountPercent = BigDecimal.ZERO;
         }
     }
 
@@ -137,4 +150,7 @@ public class Promotion {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public BigDecimal getDiscountPercent() { return discountPercent; }
+    public void setDiscountPercent(BigDecimal discountPercent) { this.discountPercent = discountPercent; }
 }
