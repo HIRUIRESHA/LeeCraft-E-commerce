@@ -40,15 +40,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             @Param("inStockOnly") boolean inStockOnly
     );
 
-    /**
-     * Find products with low stock.
-     *
-     * Example:
-     * minimumStock = 0
-     * maximumStock = 5
-     *
-     * This returns products with stock quantities 1, 2, 3, 4, or 5.
-     */
     List<Product> findByStockQuantityGreaterThanAndStockQuantityLessThanEqualOrderByStockQuantityAsc(
             Integer minimumStock,
             Integer maximumStock
