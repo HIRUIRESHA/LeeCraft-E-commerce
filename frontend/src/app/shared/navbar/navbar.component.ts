@@ -313,7 +313,7 @@ import { woodSwatch } from '../../core/utils/wood-swatch';
       .navlinks a { padding: 10px 0; border-bottom: 1px solid var(--line); }
       .navlinks.show { display: flex; }
       .mobile-toggle { display: block; }
-    styles: [`
+    }
     .topbar{background:var(--wood-900);color:var(--wood-200);font-size:12px;text-align:center;padding:7px;letter-spacing:.4px;}
     header.site{position:sticky;top:0;z-index:40;background:var(--cream);border-bottom:1px solid var(--line);}
     .navrow{display:flex;align-items:center;justify-content:space-between;padding:16px 0;}
