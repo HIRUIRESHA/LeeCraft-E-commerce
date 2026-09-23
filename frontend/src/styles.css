@@ -79,6 +79,10 @@ header.site{position:sticky;top:0;z-index:40;background:var(--cream);border-bott
 .pcard .addbtn:disabled{opacity:.5;cursor:not-allowed;}
 .pcard .addbtn:disabled:hover{background:transparent;color:var(--wood-800);}
 
+.pcard .addbtn:disabled:hover{background:transparent;color:var(--wood-800);}
+
+.pcard .prow-actions{display:flex;align-items:center;gap:10px;}
+
 /* why choose */
 .why-grid{grid-template-columns:repeat(4,minmax(0,1fr));}
 .why-item{text-align:center;padding:8px;}
@@ -184,10 +188,28 @@ footer.site{background:var(--wood-900);color:var(--wood-200);padding:60px 0 24px
 .toast.success{background:var(--wood-700);}
 .toast.error{background:var(--danger);}
 
+.pd-specs {
+  list-style: none;
+  padding: 0;
+  margin: 14px 0 20px;
+  font-size: 13.5px;
+  color: var(--wood-700);
+}
+.pd-specs li {
+  margin-bottom: 6px;
+}
+.pd-specs strong {
+  color: var(--wood-900, #2b1d14);
+  font-weight: 600;
+  margin-right: 4px;
+}
+
 @media (max-width: 860px){
   .navlinks{display:none;}
   .hero h1{font-size:34px;}
   .pgrid,.why-grid,.tgrid{grid-template-columns:repeat(2,1fr);}
   .shop-layout,.pd-layout,.co-layout,.acc-layout{grid-template-columns:1fr;}
   .fgrid{grid-template-columns:repeat(2,1fr);gap:30px;}
+
+
 }

@@ -18,6 +18,12 @@ public class GlobalExceptionHandler {
                 .body(new ApiError(Instant.now(), 404, "Not Found", ex.getMessage(), null));
     }
 
+    @ExceptionHandler(PromotionNotFoundException.class)
+    public ResponseEntity<ApiError> handlePromotionNotFound(PromotionNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ApiError(Instant.now(), 404, "Not Found", ex.getMessage(), null));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> fieldErrors = new HashMap<>();

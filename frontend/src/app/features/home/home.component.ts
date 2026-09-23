@@ -5,6 +5,8 @@ import { RouterLink } from '@angular/router';
 import { NotificationService } from '../../core/services/notification.service';
 import { ProductService } from '../../core/services/product.service';
 import { Product } from '../../core/models/product.model';
+import { BannerService, Banner } from '../../core/services/banner.service';
+import { SiteContentStore } from '../../core/services/site-content.store';
 
 @Component({
   selector: 'app-home',
@@ -14,19 +16,22 @@ import { Product } from '../../core/models/product.model';
     <section class="hero">
       <img
         class="bg"
-        src="/assets/images/hero-cover.jpg"
-        alt="Handcrafted wooden cutting boards"
+        [src]="activeBanner()?.imageUrl || '/assets/images/hero-cover.jpg'"
+        [alt]="activeBanner()?.title || 'Handcrafted wooden cutting boards'"
       />
       <div class="overlay"></div>
       <div class="wrap">
         <div class="content">
           <div class="eyebrow hero-anim d1 light">Handcrafted in Sri Lanka</div>
           <h1 class="hero-anim d2">
-            Cutting Boards Built<br />For Real Kitchens.
+            @if (activeBanner()?.title) {
+              {{ activeBanner()!.title }}
+            } @else {
+              Cutting Boards Built<br />For Real Kitchens.
+            }
           </h1>
           <p class="hero-anim d3">
-            Solid hardwood boards — food-safe, durable and easy to clean —
-            shaped by hand and finished with natural oils.
+            {{ activeBanner()?.subtitle || 'Solid hardwood boards — food-safe, durable and easy to clean — shaped by hand and finished with natural oils.' }}
           </p>
           <div class="hero-anim d4 hero-actions">
             <button class="btn btn-primary" routerLink="/shop">Shop Now</button>
@@ -51,8 +56,8 @@ import { Product } from '../../core/models/product.model';
 
     <section class="section top-flush">
       <div class="wrap">
-        <div class="eyebrow center">Best Sellers</div>
-        <h2 class="serif center">Featured Cutting Boards</h2>
+        <div class="eyebrow center">{{ content.homeFeaturedSubheading() || 'Best Sellers' }}</div>
+        <h2 class="serif center">{{ content.homeFeaturedHeading() || 'Featured Cutting Boards' }}</h2>
         <div class="grid pgrid">
           <div class="card pcard" *ngFor="let p of featured()">
             <div class="thumb">
@@ -374,7 +379,8 @@ import { Product } from '../../core/models/product.model';
       .prow {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        gap: 14px;
+       
       }
       .price {
         font-size: 15px;
@@ -532,10 +538,15 @@ import { Product } from '../../core/models/product.model';
 export class HomeComponent implements OnInit {
   private readonly notify = inject(NotificationService);
   private readonly productService = inject(ProductService);
+  private readonly bannerService = inject(BannerService);
+  protected readonly content = inject(SiteContentStore);
 
   protected readonly featured = signal<Product[]>([]);
+  protected readonly activeBanner = signal<Banner | null>(null);
 
   ngOnInit(): void {
+    this.content.load();
+
     this.productService.list().subscribe({
       next: (products) => {
         // Show first 4 products from the backend
@@ -543,6 +554,13 @@ export class HomeComponent implements OnInit {
       },
       error: (error) => {
         console.error('Failed to load featured products:', error);
+      },
+    });
+
+    this.bannerService.getActiveBanners().subscribe({
+      next: (banners) => this.activeBanner.set(banners[0] ?? null),
+      error: (error) => {
+        console.error('Failed to load banners:', error);
       },
     });
   }

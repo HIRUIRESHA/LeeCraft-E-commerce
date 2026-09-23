@@ -30,11 +30,16 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+
+
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified;
 
     @Column(nullable = false)
     private boolean active;
+
+    @Column(nullable = false, length = 20)
+    private String role;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

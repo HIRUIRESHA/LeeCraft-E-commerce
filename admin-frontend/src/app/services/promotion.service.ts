@@ -6,7 +6,7 @@ import { Promotion, PromotionRequest } from '../models/promotion.model';
 
 @Injectable({ providedIn: 'root' })
 export class PromotionService {
-  private readonly baseUrl = `${environment.apiUrl}/promotions`;
+  private readonly baseUrl = `${environment.apiUrl}/admin/promotions`;
 
   constructor(private http: HttpClient) {}
 
@@ -26,8 +26,8 @@ export class PromotionService {
     return this.http.put<Promotion>(`${this.baseUrl}/${id}`, request);
   }
 
-  toggleStatus(id: number): Observable<Promotion> {
-    return this.http.patch<Promotion>(`${this.baseUrl}/${id}/toggle`, {});
+  setActive(id: number, active: boolean): Observable<Promotion> {
+    return this.http.patch<Promotion>(`${this.baseUrl}/${id}/active`, { active });
   }
 
   delete(id: number): Observable<void> {

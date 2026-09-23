@@ -7,13 +7,33 @@ import { AuthResponse, LoginRequest, RegisterRequest, User } from '../models/use
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly TOKEN_KEY = 'leecraft_token';
+  private readonly USER_KEY = 'leecraft_user';
+
   private accessToken: string | null = null;
   private readonly currentUser = signal<User | null>(null);
 
   readonly user = computed(() => this.currentUser());
   readonly isAuthenticated = computed(() => !!this.currentUser());
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    this.restoreSession();
+  }
+
+  private restoreSession(): void {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const token = localStorage.getItem(this.TOKEN_KEY);
+        const userStr = localStorage.getItem(this.USER_KEY);
+        if (token && userStr) {
+          this.accessToken = token;
+          this.currentUser.set(JSON.parse(userStr));
+        }
+      }
+    } catch (e) {
+      console.error('Failed to restore session from localStorage', e);
+    }
+  }
 
   login(req: LoginRequest): Observable<AuthResponse> {
     return this.http
@@ -46,6 +66,17 @@ export class AuthService {
         email,
         code
       },
+      {
+        withCredentials: true,
+        responseType: 'text'
+      }
+    );
+  }
+
+  resendVerificationCode(email: string): Observable<string> {
+    return this.http.post(
+      `${environment.apiUrl}/auth/resend-verification`,
+      { email },
       {
         withCredentials: true,
         responseType: 'text'
@@ -88,19 +119,49 @@ resetPassword(
   logout(): void {
     this.accessToken = null;
     this.currentUser.set(null);
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.removeItem(this.TOKEN_KEY);
+        localStorage.removeItem(this.USER_KEY);
+      }
+    } catch (e) {
+      console.error('Failed to clear session from localStorage', e);
+    }
   }
 
   getAccessToken(): string | null {
     return this.accessToken;
   }
 
+  updateCurrentUser(user: User): void {
+    this.currentUser.set(user);
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+      }
+    } catch (e) {
+      console.error('Failed to update user in localStorage', e);
+    }
+  }
+
   private setSession(res: AuthResponse): void {
     this.accessToken = res.token;
 
-    this.currentUser.set({
+    const user: User = {
       id: res.id,
       fullName: res.fullName,
       email: res.email
-    });
+    };
+
+    this.currentUser.set(user);
+
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem(this.TOKEN_KEY, res.token);
+        localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+      }
+    } catch (e) {
+      console.error('Failed to save session to localStorage', e);
+    }
   }
 }
