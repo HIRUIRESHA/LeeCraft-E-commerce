@@ -107,7 +107,12 @@ export class CheckoutComponent {
 
     const req: CheckoutRequest = {
       ...(this.form.getRawValue() as Omit<CheckoutRequest, 'items'>),
-      items: this.cart.cartItems().map((i) => ({ productId: i.productId, qty: i.quantity })),
+      items: this.cart.cartItems().map((i) => ({
+  productId: String(i.productId),
+  productName: i.name,
+  unitPrice: i.price,
+  qty: i.quantity
+})),
     };
 
     this.orders.place(req).subscribe((order) => {

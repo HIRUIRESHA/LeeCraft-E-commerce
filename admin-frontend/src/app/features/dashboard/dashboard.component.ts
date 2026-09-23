@@ -3,6 +3,32 @@ import { CommonModule } from '@angular/common';
 
 import { DashboardService } from '../../services/dashboard.service';
 import { DashboardData } from './dashboard.model';
+import { AnalyticsData } from './analytics.model';
+
+import {
+  Chart,
+  LineController,
+  LineElement,
+  PointElement,
+  BarController,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend
+} from 'chart.js';
+
+Chart.register(
+  LineController,
+  LineElement,
+  PointElement,
+  BarController,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend
+);
 
 @Component({
   selector: 'app-dashboard',
@@ -77,11 +103,9 @@ import { DashboardData } from './dashboard.model';
       }
 
 
-      <!-- DASHBOARD -->
       @if (dashboard && !loading) {
 
         <section>
-
 
           <!-- ========================================= -->
           <!-- STATISTICS CARDS                         -->
@@ -152,6 +176,123 @@ import { DashboardData } from './dashboard.model';
 
 
           <!-- ========================================= -->
+          <!-- SALES & REVENUE ANALYTICS                -->
+          <!-- ========================================= -->
+
+          @if (analytics) {
+
+            <div
+              class="card"
+              style="
+                padding:22px;
+                margin-bottom:24px;
+              "
+            >
+
+              <h3
+                style="
+                  margin-top:0;
+                  font-size:15px;
+                "
+              >
+                Sales & Revenue Analytics
+              </h3>
+
+              <p
+                style="
+                  font-size:13px;
+                  color:var(--wood-700);
+                  margin-bottom:20px;
+                "
+              >
+                Revenue and order volume
+              </p>
+
+              <div
+                style="
+                  position:relative;
+                  height:350px;
+                  width:100%;
+                "
+              >
+                <canvas id="revenueChart"></canvas>
+              </div>
+
+            </div>
+
+
+            <!-- TOP SELLING PRODUCTS + CATEGORIES -->
+
+            <div
+              class="grid"
+              style="
+                grid-template-columns:1fr 1fr;
+                gap:24px;
+                margin-bottom:24px;
+              "
+            >
+
+              <!-- TOP PRODUCTS -->
+
+              <div
+                class="card"
+                style="padding:22px;"
+              >
+
+                <h3
+                  style="
+                    margin-top:0;
+                    font-size:15px;
+                  "
+                >
+                  Top-Selling Products
+                </h3>
+
+                <div
+                  style="
+                    position:relative;
+                    height:300px;
+                  "
+                >
+                  <canvas id="productChart"></canvas>
+                </div>
+
+              </div>
+
+
+              <!-- TOP CATEGORIES -->
+
+              <div
+                class="card"
+                style="padding:22px;"
+              >
+
+                <h3
+                  style="
+                    margin-top:0;
+                    font-size:15px;
+                  "
+                >
+                  Top-Selling Categories
+                </h3>
+
+                <div
+                  style="
+                    position:relative;
+                    height:300px;
+                  "
+                >
+                  <canvas id="categoryChart"></canvas>
+                </div>
+
+              </div>
+
+            </div>
+
+          }
+
+
+          <!-- ========================================= -->
           <!-- DASHBOARD CONTENT                         -->
           <!-- ========================================= -->
 
@@ -164,9 +305,7 @@ import { DashboardData } from './dashboard.model';
           >
 
 
-            <!-- ======================================= -->
-            <!-- BEST SELLING PRODUCTS                  -->
-            <!-- ======================================= -->
+            <!-- BEST SELLING PRODUCTS -->
 
             <div
               class="card"
@@ -181,7 +320,6 @@ import { DashboardData } from './dashboard.model';
               >
                 Best-Selling Boards
               </h3>
-
 
               @if (
                 dashboard.bestSellingProducts.length === 0
@@ -235,9 +373,7 @@ import { DashboardData } from './dashboard.model';
             </div>
 
 
-            <!-- ======================================= -->
-            <!-- TOP CHATBOT QUESTIONS                  -->
-            <!-- ======================================= -->
+            <!-- TOP CHATBOT QUESTIONS -->
 
             <div
               class="card"
@@ -252,7 +388,6 @@ import { DashboardData } from './dashboard.model';
               >
                 Top Chatbot Questions
               </h3>
-
 
               @if (
                 dashboard.topChatbotQuestions.length === 0
@@ -292,9 +427,7 @@ import { DashboardData } from './dashboard.model';
             </div>
 
 
-            <!-- ======================================= -->
-            <!-- LOW STOCK PRODUCTS                     -->
-            <!-- ======================================= -->
+            <!-- LOW STOCK PRODUCTS -->
 
             <div
               class="card"
@@ -309,7 +442,6 @@ import { DashboardData } from './dashboard.model';
               >
                 Low Stock Products
               </h3>
-
 
               @if (
                 dashboard.lowStockProducts.length === 0
@@ -363,9 +495,7 @@ import { DashboardData } from './dashboard.model';
             </div>
 
 
-            <!-- ======================================= -->
-            <!-- OUT OF STOCK PRODUCTS                  -->
-            <!-- ======================================= -->
+            <!-- OUT OF STOCK PRODUCTS -->
 
             <div
               class="card"
@@ -380,7 +510,6 @@ import { DashboardData } from './dashboard.model';
               >
                 Out of Stock Products
               </h3>
-
 
               @if (
                 dashboard.outOfStockProducts.length === 0
@@ -434,9 +563,7 @@ import { DashboardData } from './dashboard.model';
             </div>
 
 
-            <!-- ======================================= -->
-            <!-- RECENT ORDERS                          -->
-            <!-- ======================================= -->
+            <!-- RECENT ORDERS -->
 
             <div
               class="card"
@@ -451,7 +578,6 @@ import { DashboardData } from './dashboard.model';
               >
                 Recent Orders
               </h3>
-
 
               @if (
                 dashboard.recentOrders.length === 0
@@ -502,7 +628,6 @@ import { DashboardData } from './dashboard.model';
 
                     </div>
 
-
                     <span>
                       Rs.
                       {{ order.total | number:'1.0-0' }}
@@ -532,9 +657,17 @@ export class DashboardComponent implements OnInit {
 
   dashboard: DashboardData | null = null;
 
+  analytics: AnalyticsData | null = null;
+
   loading = true;
 
   errorMessage = '';
+
+  revenueChart: Chart | null = null;
+
+  productChart: Chart | null = null;
+
+  categoryChart: Chart | null = null;
 
 
   ngOnInit(): void {
@@ -555,7 +688,7 @@ export class DashboardComponent implements OnInit {
 
         this.dashboard = data;
 
-        this.loading = false;
+        this.loadAnalytics();
 
       },
 
@@ -570,6 +703,278 @@ export class DashboardComponent implements OnInit {
           'Unable to load dashboard data. Please make sure the backend is running.';
 
         this.loading = false;
+
+      }
+
+    });
+
+  }
+
+
+  loadAnalytics(): void {
+
+    this.dashboardService.getAnalytics().subscribe({
+
+      next: (data: AnalyticsData) => {
+
+        console.log('Analytics data:', data);
+
+        this.analytics = data;
+
+        this.loading = false;
+
+        setTimeout(() => {
+          this.createCharts();
+        });
+
+      },
+
+      error: (error) => {
+
+        console.error(
+          'Failed to load analytics:',
+          error
+        );
+
+        this.errorMessage =
+          'Dashboard loaded, but analytics could not be loaded.';
+
+        this.loading = false;
+
+      }
+
+    });
+
+  }
+
+
+  createCharts(): void {
+
+    if (!this.analytics) {
+      return;
+    }
+
+    this.createRevenueChart();
+
+    this.createProductChart();
+
+    this.createCategoryChart();
+
+  }
+
+
+  createRevenueChart(): void {
+
+    const canvas =
+      document.getElementById(
+        'revenueChart'
+      ) as HTMLCanvasElement | null;
+
+    if (!canvas || !this.analytics) {
+      return;
+    }
+
+
+    if (this.revenueChart) {
+      this.revenueChart.destroy();
+    }
+
+
+    this.revenueChart = new Chart(canvas, {
+
+      type: 'line',
+
+      data: {
+
+        labels: this.analytics.revenue.map(
+          item => item.period
+        ),
+
+        datasets: [
+
+          {
+            label: 'Revenue',
+
+            data: this.analytics.revenue.map(
+              item => item.revenue
+            ),
+
+            tension: 0.3,
+
+            fill: false
+          }
+
+        ]
+
+      },
+
+      options: {
+
+        responsive: true,
+
+        maintainAspectRatio: false,
+
+        plugins: {
+
+          legend: {
+            display: true
+          },
+
+          tooltip: {
+            enabled: true
+          }
+
+        },
+
+        scales: {
+
+          y: {
+            beginAtZero: true
+          }
+
+        }
+
+      }
+
+    });
+
+  }
+
+
+  createProductChart(): void {
+
+    const canvas =
+      document.getElementById(
+        'productChart'
+      ) as HTMLCanvasElement | null;
+
+    if (!canvas || !this.analytics) {
+      return;
+    }
+
+
+    if (this.productChart) {
+      this.productChart.destroy();
+    }
+
+
+    this.productChart = new Chart(canvas, {
+
+      type: 'bar',
+
+      data: {
+
+        labels: this.analytics.topSellingProducts.map(
+          item => item.productName
+        ),
+
+        datasets: [
+
+          {
+            label: 'Units Sold',
+
+            data: this.analytics.topSellingProducts.map(
+              item => item.quantity
+            )
+
+          }
+
+        ]
+
+      },
+
+      options: {
+
+        responsive: true,
+
+        maintainAspectRatio: false,
+
+        plugins: {
+
+          legend: {
+            display: true
+          }
+
+        },
+
+        scales: {
+
+          y: {
+            beginAtZero: true
+          }
+
+        }
+
+      }
+
+    });
+
+  }
+
+
+  createCategoryChart(): void {
+
+    const canvas =
+      document.getElementById(
+        'categoryChart'
+      ) as HTMLCanvasElement | null;
+
+    if (!canvas || !this.analytics) {
+      return;
+    }
+
+
+    if (this.categoryChart) {
+      this.categoryChart.destroy();
+    }
+
+
+    this.categoryChart = new Chart(canvas, {
+
+      type: 'bar',
+
+      data: {
+
+        labels: this.analytics.topSellingCategories.map(
+          item => item.categoryName
+        ),
+
+        datasets: [
+
+          {
+            label: 'Units Sold',
+
+            data: this.analytics.topSellingCategories.map(
+              item => item.quantity
+            )
+
+          }
+
+        ]
+
+      },
+
+      options: {
+
+        responsive: true,
+
+        maintainAspectRatio: false,
+
+        plugins: {
+
+          legend: {
+            display: true
+          }
+
+        },
+
+        scales: {
+
+          y: {
+            beginAtZero: true
+          }
+
+        }
 
       }
 

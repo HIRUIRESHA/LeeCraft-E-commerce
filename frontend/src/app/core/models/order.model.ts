@@ -17,7 +17,12 @@ export interface CheckoutRequest {
   postalCode: string;
   shippingMethod: ShippingMethod;
   contactPreference: ContactMethod;
-  items: { productId: number; qty: number }[];
+   items: {
+    productId: string;
+    productName: string;
+    unitPrice: number;
+    qty: number;
+  }[];
 }
 
 export interface Order {
