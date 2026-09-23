@@ -17,6 +17,9 @@ public class SiteContent {
     @Column(name = "content_value", length = 4000)
     private String contentValue;
 
+    @Column(name = "body", length = 4000)
+    private String body;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
@@ -24,6 +27,9 @@ public class SiteContent {
     @PreUpdate
     protected void onSave() {
         this.updatedAt = LocalDateTime.now();
+        if (this.body == null && this.contentValue != null) {
+            this.body = this.contentValue;
+        }
     }
 
     public SiteContent() {}
@@ -31,6 +37,7 @@ public class SiteContent {
     public SiteContent(String contentKey, String contentValue) {
         this.contentKey = contentKey;
         this.contentValue = contentValue;
+        this.body = contentValue;
     }
 
     public Long getId() { return id; }
@@ -38,7 +45,14 @@ public class SiteContent {
     public String getContentKey() { return contentKey; }
     public void setContentKey(String contentKey) { this.contentKey = contentKey; }
     public String getContentValue() { return contentValue; }
-    public void setContentValue(String contentValue) { this.contentValue = contentValue; }
+    public void setContentValue(String contentValue) {
+        this.contentValue = contentValue;
+        if (this.body == null) {
+            this.body = contentValue;
+        }
+    }
+    public String getBody() { return body; }
+    public void setBody(String body) { this.body = body; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.web.bind.annotation.RequestParam;
+
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
@@ -26,6 +28,13 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<OrderResponse> checkout(@Valid @RequestBody CheckoutRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(orderService.placeOrder(request));
+    }
+
+    @GetMapping("/track")
+    public ResponseEntity<OrderResponse> trackOrder(
+            @RequestParam String orderNumber,
+            @RequestParam String contact) {
+        return ResponseEntity.ok(orderService.trackOrder(orderNumber, contact));
     }
 
     @GetMapping("/{orderNumber}")

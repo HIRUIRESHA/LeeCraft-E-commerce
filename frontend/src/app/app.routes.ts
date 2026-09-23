@@ -44,6 +44,15 @@ export const routes: Routes = [
     title: 'Product Details — LeeCraft.lk'
   },
 
+  // LIVE ORDER TRACKING
+  {
+    path: 'track-order',
+    loadComponent: () =>
+      import('./features/track-order/track-order.component')
+        .then(m => m.TrackOrderComponent),
+    title: 'Track Order — LeeCraft.lk'
+  },
+
   {
     path: 'cart',
     canActivate: [authGuard],

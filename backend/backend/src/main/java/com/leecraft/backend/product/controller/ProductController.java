@@ -38,8 +38,21 @@ public class ProductController {
             @RequestParam(required = false) String size,
             @RequestParam(required = false) String shape,
             @RequestParam(required = false) String color,
-            @RequestParam(defaultValue = "false") boolean inStockOnly) {
-        return ResponseEntity.ok(productService.searchProducts(keyword, categoryId, minPrice, maxPrice, material, size, shape, color, inStockOnly));
+            @RequestParam(defaultValue = "false") boolean inStockOnly,
+            @RequestParam(required = false) String sort) {
+        return ResponseEntity.ok(productService.searchProducts(
+                keyword, categoryId, minPrice, maxPrice, material, size, shape, color, inStockOnly, sort
+        ));
+    }
+
+    @GetMapping("/autocomplete")
+    public ResponseEntity<List<ProductResponse>> getAutocomplete(@RequestParam(required = false) String keyword) {
+        return ResponseEntity.ok(productService.getAutocompleteSuggestions(keyword));
+    }
+
+    @GetMapping("/{id}/related")
+    public ResponseEntity<List<ProductResponse>> getRelatedProducts(@PathVariable Long id) {
+        return ResponseEntity.ok(productService.getRelatedProducts(id));
     }
 
     @GetMapping("/{id}")
