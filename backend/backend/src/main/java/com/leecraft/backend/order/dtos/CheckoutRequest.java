@@ -18,6 +18,7 @@ public record CheckoutRequest(
         @NotBlank String postalCode,
         @NotNull ShippingMethod shippingMethod,
         @NotNull ContactMethod contactPreference,
-        @NotEmpty @Valid List<OrderItemRequest> items
+        @NotEmpty @Valid List<OrderItemRequest> items,
+        String promoCode
 ) {
 }

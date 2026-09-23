@@ -20,3 +20,28 @@ export interface Product {
   categoryId: number;
   categoryName: string;
 }
+
+export interface Review {
+  id: number;
+  productId: number;
+  reviewerName: string;
+  rating: number;
+  comment: string;
+  verifiedPurchase: boolean;
+  createdAt: string;
+}
+
+export interface ProductReviewSummary {
+  productId: number;
+  averageRating: number;
+  totalReviews: number;
+  ratingDistribution: Record<number, number>;
+  reviews: Review[];
+}
+
+export interface CreateReviewRequest {
+  reviewerName: string;
+  reviewerEmail?: string;
+  rating: number;
+  comment: string;
+}

@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import {
   AddressRequest,
@@ -8,13 +9,15 @@ import {
   UserAddress,
   UserProfile,
 } from '../../core/services/profile.service';
+import { OrderService } from '../../core/services/order.service';
+import { Order, OrderStatus } from '../../core/models/order.model';
 
-type Tab = 'profile' | 'addresses' | 'security';
+type Tab = 'profile' | 'addresses' | 'security' | 'orders';
 
 @Component({
   selector: 'app-account',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, DecimalPipe, DatePipe, RouterLink],
   template: `
     <div class="wrap section">
 
@@ -31,6 +34,16 @@ type Tab = 'profile' | 'addresses' | 'security';
 
         <!-- Navigation Sidebar -->
         <nav class="acc-nav">
+          <a
+            [class.active]="activeTab === 'orders'"
+            (click)="activeTab = 'orders'"
+          >
+            My Orders
+            @if (orders.length > 0) {
+              <span class="tab-badge">{{ orders.length }}</span>
+            }
+          </a>
+
           <a
             [class.active]="activeTab === 'profile'"
             (click)="activeTab = 'profile'"
@@ -86,6 +99,111 @@ type Tab = 'profile' | 'addresses' | 'security';
               font-size:13.5px;
             ">
               {{ errorMessage }}
+            </div>
+          }
+
+          <!-- TAB 0: MY ORDERS -->
+          @if (activeTab === 'orders') {
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+                <div>
+                  <h2 class="serif" style="font-size:24px;margin:0;">Order History</h2>
+                  <p style="color:var(--wood-600);font-size:13px;margin:4px 0 0;">View your past orders, items, and live tracking status.</p>
+                </div>
+                <a routerLink="/track-order" class="btn btn-outline btn-sm">
+                  🔍 Track Any Order
+                </a>
+              </div>
+
+              @if (isLoadingOrders) {
+                <div style="text-align:center;padding:50px 0;color:var(--wood-600);font-size:14px;">
+                  Loading your orders...
+                </div>
+              } @else if (orders.length === 0) {
+                <div class="empty-orders-card">
+                  <div style="font-size:42px;margin-bottom:12px;">📦</div>
+                  <h3 style="font-size:18px;margin-bottom:8px;font-weight:600;">No orders found yet</h3>
+                  <p style="color:var(--wood-600);font-size:13.5px;max-width:380px;margin:0 auto 20px;line-height:1.5;">
+                    You haven't placed any orders with this account yet. Discover our collection of handcrafted cutting boards and wooden crafts!
+                  </p>
+                  <a routerLink="/shop" class="btn btn-primary btn-sm">Browse Crafts</a>
+                </div>
+              } @else {
+                <div class="orders-list">
+                  @for (order of orders; track order.id) {
+                    <div class="account-order-card">
+                      <!-- Header -->
+                      <div class="account-order-header">
+                        <div>
+                          <div class="order-id-badge">Order #{{ order.id }}</div>
+                          <div class="order-time-text">Placed on {{ order.createdAt | date:'mediumDate' }}</div>
+                        </div>
+                        <span class="status-chip" [ngClass]="'status-' + order.status.toLowerCase()">
+                          {{ getStatusLabel(order.status) }}
+                        </span>
+                      </div>
+
+                      <!-- Items breakdown -->
+                      <div class="account-order-body">
+                        @if (order.items && order.items.length > 0) {
+                          <div class="items-table">
+                            @for (item of order.items; track item.productId) {
+                              <div class="item-row">
+                                <span class="item-name"><strong>{{ item.productName }}</strong> &times; {{ item.qty }}</span>
+                                <span class="item-total">Rs. {{ item.lineTotal | number }}</span>
+                              </div>
+                            }
+                          </div>
+                        }
+
+                        <div class="order-meta-grid">
+                          <div class="shipping-info">
+                            <span class="sub-label">Shipping Destination:</span>
+                            <span class="sub-val">{{ order.address }}, {{ order.city }}</span>
+                            <span class="sub-label" style="margin-top:6px;">Delivery Method:</span>
+                            <span class="sub-val">{{ order.shippingMethod === 'EXPRESS' ? 'Express Delivery' : 'Standard Delivery' }}</span>
+                          </div>
+
+                          <div class="price-info">
+                            @if (order.discountAmount && order.discountAmount > 0) {
+                              <div style="font-size:12.5px;color:#16a34a;margin-bottom:2px;">
+                                Discount ({{ order.promoCode }}): - Rs. {{ order.discountAmount | number }}
+                              </div>
+                            }
+                            <div style="font-size:12.5px;color:var(--wood-600);margin-bottom:4px;">
+                              Shipping: Rs. {{ (order.shippingCost || 0) | number }}
+                            </div>
+                            <div class="final-total">
+                              Total: Rs. {{ order.total | number }}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Card Actions -->
+                      <div class="account-order-footer">
+                        <a
+                          [routerLink]="['/track-order']"
+                          [queryParams]="{ orderNumber: order.id, contact: order.email || order.contactNumber }"
+                          class="btn btn-outline btn-sm"
+                        >
+                          🚚 Live Tracking
+                        </a>
+                        @if (order.whatsappLink) {
+                          <a
+                            [href]="order.whatsappLink"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="whatsapp-link-btn"
+                          >
+                            💬 WhatsApp Support
+                          </a>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
             </div>
           }
 
@@ -335,28 +453,137 @@ type Tab = 'profile' | 'addresses' | 'security';
 
     </div>
   `,
+  styles: [`
+    .tab-badge {
+      background: var(--wood-500);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 999px;
+      margin-left: 6px;
+    }
+    .empty-orders-card {
+      text-align: center;
+      padding: 48px 24px;
+      background: #fff;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+    }
+    .orders-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .account-order-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+    .account-order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      background: #faf8f5;
+      border-bottom: 1px solid var(--line);
+    }
+    .order-id-badge {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--wood-900);
+    }
+    .order-time-text {
+      font-size: 12px;
+      color: var(--wood-500);
+      margin-top: 2px;
+    }
+    .status-chip {
+      display: inline-block;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 4px;
+      text-transform: capitalize;
+    }
+    .status-placed { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .status-packed { background: #fefce8; color: #a16207; border: 1px solid #fef08a; }
+    .status-shipped { background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+    .status-delivered { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+    .status-cancelled { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+    .account-order-body {
+      padding: 20px;
+    }
+    .items-table {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+    }
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13.5px;
+      margin-bottom: 8px;
+    }
+    .item-name { color: var(--wood-900); }
+    .item-total { font-weight: 500; color: var(--wood-800); }
+
+    .order-meta-grid {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      font-size: 13px;
+    }
+    .sub-label { display: block; color: var(--wood-500); font-size: 11.5px; text-transform: uppercase; font-weight: 600; }
+    .sub-val { color: var(--wood-800); }
+    .final-total { font-size: 16px; font-weight: 700; color: var(--wood-900); margin-top: 4px; }
+
+    .account-order-footer {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      background: #faf8f5;
+      border-top: 1px solid var(--line);
+    }
+    .whatsapp-link-btn {
+      font-size: 12.5px;
+      color: #16a34a;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .whatsapp-link-btn:hover { text-decoration: underline; }
+  `],
 })
 export class AccountComponent implements OnInit {
   public auth = inject(AuthService);
   private profileService = inject(ProfileService);
+  private orderService = inject(OrderService);
+  private route = inject(ActivatedRoute);
   private router = inject(Router);
   private fb = inject(FormBuilder);
 
-  activeTab: Tab = 'profile';
+  activeTab: Tab = 'orders';
   profile: UserProfile | null = null;
   addresses: UserAddress[] = [];
+  orders: Order[] = [];
+  isLoadingOrders = false;
 
   feedbackMessage: string | null = null;
   errorMessage: string | null = null;
 
   isSavingProfile = false;
-isSavingAddress = false;
-isChangingPassword = false;
-showAddressForm = false;
+  isSavingAddress = false;
+  isChangingPassword = false;
+  showAddressForm = false;
 
-showCurrentPassword = false;
-showNewPassword = false;
-showConfirmPassword = false;
+  showCurrentPassword = false;
+  showNewPassword = false;
+  showConfirmPassword = false;
 
   profileForm = this.fb.group({
     fullName: ['', Validators.required],
@@ -385,8 +612,38 @@ showConfirmPassword = false;
   });
 
   ngOnInit(): void {
+    const tabParam = this.route.snapshot.queryParamMap.get('tab');
+    if (tabParam === 'orders' || tabParam === 'addresses' || tabParam === 'security' || tabParam === 'profile') {
+      this.activeTab = tabParam as Tab;
+    }
+    this.loadOrders();
     this.loadProfile();
     this.loadAddresses();
+  }
+
+  loadOrders(): void {
+    this.isLoadingOrders = true;
+    this.orderService.getMyOrders().subscribe({
+      next: (orders) => {
+        this.orders = orders;
+        this.isLoadingOrders = false;
+      },
+      error: (err) => {
+        console.warn('Could not load user orders:', err);
+        this.isLoadingOrders = false;
+      },
+    });
+  }
+
+  getStatusLabel(status: OrderStatus): string {
+    switch (status) {
+      case 'PLACED': return 'Order Placed';
+      case 'PACKED': return 'Crafted & Packed';
+      case 'SHIPPED': return 'Dispatched';
+      case 'DELIVERED': return 'Delivered';
+      case 'CANCELLED': return 'Cancelled';
+      default: return status;
+    }
   }
 
   loadProfile(): void {
