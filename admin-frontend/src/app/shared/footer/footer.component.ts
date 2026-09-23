@@ -12,8 +12,7 @@ const STOREFRONT_URL = 'http://localhost:4300';
         <div class="grid fgrid">
           <div>
             <a class="brand" style="margin-bottom:16px;" [href]="storefrontUrl">
-              <div class="logo">L</div>
-              <span class="name serif" style="color:#FBF6EF;">LeeCraft.lk</span>
+              <img class="logo" style="filter:brightness(0) invert(1);" src="/assets/images/logo.png" alt="LeeCraft.lk" />
             </a>
             <p style="font-size:13px;line-height:1.8;color:#B39F87;max-width:260px;">
               Naturally crafted, built to last. Handmade wooden cutting boards from Sri Lanka.

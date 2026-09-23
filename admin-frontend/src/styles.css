@@ -34,7 +34,7 @@ header.site{position:sticky;top:0;z-index:40;background:var(--cream);border-bott
 .topbar{background:var(--wood-900);color:var(--wood-200);font-size:12px;text-align:center;padding:7px;letter-spacing:.4px;}
 .navrow{display:flex;align-items:center;justify-content:space-between;padding:16px 0;}
 .brand{display:flex;align-items:center;gap:10px;cursor:pointer;}
-.brand .logo{height:38px;width:38px;border-radius:6px;background:var(--wood-500);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:16px;}
+.brand .logo{height:40px;width:auto;display:block;}
 .brand .name{font-size:20px;}
 .navlinks{display:flex;gap:30px;}
 .navlinks a{font-size:14px;color:var(--wood-800);cursor:pointer;}
