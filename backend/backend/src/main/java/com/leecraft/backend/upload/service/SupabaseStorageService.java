@@ -31,6 +31,9 @@ public class SupabaseStorageService {
     }
 
     public String uploadImage(MultipartFile file) {
+        if (serviceKey == null || serviceKey.isBlank()) {
+            throw new IllegalStateException("Supabase service key is not configured. Please set SUPABASE_SERVICE_KEY in .env or environment variables.");
+        }
         try {
             String fileName = UUID.randomUUID() + getExtension(file.getOriginalFilename());
             String uploadUrl = supabaseUrl + "/storage/v1/object/" + bucket + "/" + fileName;
