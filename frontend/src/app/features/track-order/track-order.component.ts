@@ -1,9 +1,12 @@
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component,OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { OrderService } from '../../core/services/order.service';
 import { Order, OrderStatus } from '../../core/models/order.model';
+
+import { Subscription, interval } from 'rxjs';
+
 
 @Component({
   selector: 'app-track-order',
@@ -449,31 +452,66 @@ import { Order, OrderStatus } from '../../core/models/order.model';
     }
   `],
 })
-export class TrackOrderComponent implements OnInit {
-  private orderService = inject(OrderService);
-  private route = inject(ActivatedRoute);
+export class TrackOrderComponent
+  implements OnInit, OnDestroy {
+
+  private readonly orderService =
+    inject(OrderService);
+
+  private readonly route =
+    inject(ActivatedRoute);
+
+  private refreshSubscription?: Subscription;
 
   orderNumberInput = signal('');
+
   contactInput = signal('');
+
   isLoading = signal(false);
-  errorMessage = signal<string | null>(null);
-  order = signal<Order | null>(null);
+
+  errorMessage =
+    signal<string | null>(null);
+
+  order =
+    signal<Order | null>(null);
 
   readonly steps = [
-    { key: 'PLACED', label: 'Order Placed', desc: 'Received & confirmed' },
-    { key: 'PACKED', label: 'Crafting & Packed', desc: 'Handcrafted & inspected' },
-    { key: 'SHIPPED', label: 'Dispatched', desc: 'On courier route' },
-    { key: 'DELIVERED', label: 'Delivered', desc: 'Arrived at your door' },
+    {
+      key: 'PLACED',
+      label: 'Order Placed',
+      desc: 'Received & confirmed'
+    },
+    {
+      key: 'PACKED',
+      label: 'Crafting & Packed',
+      desc: 'Handcrafted & inspected'
+    },
+    {
+      key: 'SHIPPED',
+      label: 'Dispatched',
+      desc: 'On courier route'
+    },
+    {
+      key: 'DELIVERED',
+      label: 'Delivered',
+      desc: 'Arrived at your door'
+    }
   ];
 
   ngOnInit(): void {
+
     this.route.queryParamMap.subscribe((params) => {
-      const ordNum = params.get('orderNumber');
-      const contact = params.get('contact');
+
+      const ordNum =
+        params.get('orderNumber');
+
+      const contact =
+        params.get('contact');
 
       if (ordNum) {
         this.orderNumberInput.set(ordNum);
       }
+
       if (contact) {
         this.contactInput.set(contact);
       }
@@ -481,66 +519,220 @@ export class TrackOrderComponent implements OnInit {
       if (ordNum && contact) {
         this.onTrack();
       }
+
     });
   }
 
+  ngOnDestroy(): void {
+
+    this.stopAutoRefresh();
+
+  }
+
   onTrack(): void {
-    const num = this.orderNumberInput().trim();
-    const contact = this.contactInput().trim();
+
+    const num =
+      this.orderNumberInput().trim();
+
+    const contact =
+      this.contactInput().trim();
 
     if (!num || !contact) {
-      this.errorMessage.set('Please provide both Order Number and your Email or Phone.');
+
+      this.errorMessage.set(
+        'Please provide both Order Number and your Email or Phone.'
+      );
+
       return;
     }
 
     this.isLoading.set(true);
+
     this.errorMessage.set(null);
 
-    this.orderService.trackOrder(num, contact).subscribe({
-      next: (data) => {
-        this.order.set(data);
-        this.isLoading.set(false);
-      },
-      error: (err) => {
-        this.isLoading.set(false);
-        this.order.set(null);
-        this.errorMessage.set(
-          err.error?.message || 'No order found matching this order number and contact information. Please verify your details.'
-        );
-      },
-    });
+    this.orderService
+      .trackOrder(num, contact)
+      .subscribe({
+
+        next: (data) => {
+
+          this.order.set(data);
+
+          this.isLoading.set(false);
+
+          /*
+           * Start automatic status checking
+           * after the first successful lookup.
+           */
+          this.startAutoRefresh();
+
+        },
+
+        error: (err) => {
+
+          this.isLoading.set(false);
+
+          this.order.set(null);
+
+          this.stopAutoRefresh();
+
+          this.errorMessage.set(
+            err.error?.message ||
+            'No order found matching this order number and contact information. Please verify your details.'
+          );
+
+        }
+
+      });
   }
 
-  isStepCompleted(status: OrderStatus, stepKey: string): boolean {
-    const statusWeight: Record<OrderStatus, number> = {
-      PLACED: 1,
-      PACKED: 2,
-      SHIPPED: 3,
-      DELIVERED: 4,
-      CANCELLED: 0,
-    };
-    const currentWeight = statusWeight[status] || 0;
-    const targetWeight = statusWeight[stepKey as OrderStatus] || 0;
-    return currentWeight >= targetWeight && status !== 'CANCELLED';
+  /**
+   * Automatically check the backend every 10 seconds.
+   *
+   * This allows the customer page to see changes
+   * made by the admin without manually searching again.
+   */
+  private startAutoRefresh(): void {
+
+    this.stopAutoRefresh();
+
+    this.refreshSubscription =
+      interval(10000).subscribe(() => {
+
+        this.refreshOrder();
+
+      });
   }
 
-  isCurrentStep(status: OrderStatus, stepKey: string): boolean {
-    return status === stepKey && status !== 'CANCELLED';
+  /**
+   * Get the latest order status from the backend.
+   */
+  private refreshOrder(): void {
+
+    const num =
+      this.orderNumberInput().trim();
+
+    const contact =
+      this.contactInput().trim();
+
+    if (!num || !contact) {
+      return;
+    }
+
+    this.orderService
+      .trackOrder(num, contact)
+      .subscribe({
+
+        next: (data) => {
+
+          this.order.set(data);
+
+        },
+
+        error: (err) => {
+
+          console.error(
+            'Failed to refresh order:',
+            err
+          );
+
+          /*
+           * Do not clear the existing order here.
+           *
+           * If one refresh request temporarily fails,
+           * the customer can continue seeing the last
+           * successfully loaded status.
+           */
+        }
+
+      });
   }
 
-  getStatusLabel(status: OrderStatus): string {
+  private stopAutoRefresh(): void {
+
+    this.refreshSubscription?.unsubscribe();
+
+    this.refreshSubscription = undefined;
+  }
+
+  isStepCompleted(
+    status: OrderStatus,
+    stepKey: string
+  ): boolean {
+
+    const statusWeight:
+      Record<OrderStatus, number> = {
+
+        PLACED: 1,
+
+        PACKED: 2,
+
+        SHIPPED: 3,
+
+        DELIVERED: 4,
+
+        CANCELLED: 0
+
+      };
+
+    const currentWeight =
+      statusWeight[status] || 0;
+
+    const targetWeight =
+      statusWeight[
+        stepKey as OrderStatus
+      ] || 0;
+
+    return (
+      currentWeight >= targetWeight &&
+      status !== 'CANCELLED'
+    );
+  }
+
+  isCurrentStep(
+    status: OrderStatus,
+    stepKey: string
+  ): boolean {
+
+    return (
+      status === stepKey &&
+      status !== 'CANCELLED'
+    );
+  }
+
+  getStatusLabel(
+    status: OrderStatus
+  ): string {
+
     switch (status) {
-      case 'PLACED': return 'Order Placed';
-      case 'PACKED': return 'Crafted & Packed';
-      case 'SHIPPED': return 'On Courier Route';
-      case 'DELIVERED': return 'Delivered';
-      case 'CANCELLED': return 'Cancelled';
-      default: return status;
+
+      case 'PLACED':
+        return 'Order Placed';
+
+      case 'PACKED':
+        return 'Crafted & Packed';
+
+      case 'SHIPPED':
+        return 'On Courier Route';
+
+      case 'DELIVERED':
+        return 'Delivered';
+
+      case 'CANCELLED':
+        return 'Cancelled';
+
+      default:
+        return status;
     }
   }
 
-  getGeneralWhatsApp(order: Order): string {
-    const msg = `Hi LeeCraft, I would like to check the status of my order #${order.id} (${order.fullName}).`;
+  getGeneralWhatsApp(
+    order: Order
+  ): string {
+
+    const msg =
+      `Hi LeeCraft, I would like to check the status of my order #${order.id} (${order.fullName}).`;
+
     return `https://wa.me/94771234567?text=${encodeURIComponent(msg)}`;
   }
 }

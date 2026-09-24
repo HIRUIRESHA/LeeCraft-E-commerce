@@ -94,6 +94,27 @@ export const routes: Routes = [
       ),
     title: 'Inventory — LeeCraft Admin',
   },
+
+  {
+  path: 'orders',
+  canActivate: [adminAuthGuard],
+  loadComponent: () =>
+    import('./features/orders/orders.component').then(
+      (m) => m.OrdersComponent
+    ),
+  title: 'Orders — LeeCraft Admin',
+},
+{
+  path: 'orders/:orderNumber',
+  canActivate: [adminAuthGuard],
+  loadComponent: () =>
+    import('./features/orders/order-detail.component').then(
+      (m) => m.OrderDetailComponent
+    ),
+  title: 'Order Details — LeeCraft Admin',
+},
+
+
   {
     path: 'customers',
     canActivate: [adminAuthGuard],
