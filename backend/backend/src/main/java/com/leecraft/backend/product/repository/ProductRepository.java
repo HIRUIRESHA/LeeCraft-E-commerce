@@ -1,12 +1,15 @@
 package com.leecraft.backend.product.repository;
 
 import com.leecraft.backend.product.model.Product;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
@@ -51,4 +54,16 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      * stockQuantity = 0
      */
     List<Product> findByStockQuantity(Integer stockQuantity);
+
+    /**
+     * Find a product and lock its database row while an order
+     * is being created.
+     *
+     * This prevents two customers from purchasing the same
+     * remaining stock at the same time.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Product p WHERE p.id = :id")
+    Optional<Product> findByIdForUpdate(@Param("id") Long id);
 }
+

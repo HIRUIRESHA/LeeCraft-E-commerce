@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service;
 import com.leecraft.backend.promotion.dto.PromotionValidationResponse;
 import com.leecraft.backend.promotion.service.PromotionService;
 import org.springframework.transaction.annotation.Transactional;
+import com.leecraft.backend.product.model.Product;
+
 
 @Service
 public class OrderService {
@@ -65,43 +67,64 @@ public class OrderService {
         }
 
         BigDecimal subtotal = BigDecimal.ZERO;
+
         for (OrderItemRequest itemRequest : request.items()) {
+
+            // Validate quantity
+            if (itemRequest.qty() <= 0) {
+                throw new IllegalArgumentException("Product quantity must be greater than zero.");
+            }
+
+            // Convert product ID from request to Long
+            Long productId;
+            try {
+                productId = Long.parseLong(itemRequest.productId().trim());
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException(
+                        "Invalid product ID: " + itemRequest.productId()
+                );
+            }
+
+            // Lock the product row while checking and updating stock
+            Product product = productRepository.findByIdForUpdate(productId)
+                    .orElseThrow(() ->
+                            new IllegalArgumentException(
+                                    "Product not found: " + productId
+                            )
+                    );
+
+            // Check available stock
+            int availableStock = product.getStockQuantity();
+
+            if (availableStock < itemRequest.qty()) {
+                throw new IllegalArgumentException(
+                        "Insufficient stock for product: " + product.getName()
+                                + ". Available: " + availableStock
+                );
+            }
+
+            // Reduce stock when the order is placed
+            product.setStockQuantity(
+                    availableStock - itemRequest.qty()
+            );
+
+            // Use product information from the database
+            // instead of trusting price/name sent by the frontend
             OrderItem item = new OrderItem();
-            item.setProductId(itemRequest.productId());
 
-            String name = itemRequest.productName();
-            BigDecimal price = itemRequest.unitPrice();
-
-            if (name == null || name.isBlank() || price == null) {
-                try {
-                    Long pid = Long.parseLong(itemRequest.productId().trim());
-                    var productOpt = productRepository.findById(pid);
-                    if (productOpt.isPresent()) {
-                        var prod = productOpt.get();
-                        if (name == null || name.isBlank()) {
-                            name = prod.getName();
-                        }
-                        if (price == null) {
-                            price = prod.getPrice();
-                        }
-                    }
-                } catch (Exception ignored) {
-                }
-            }
-
-            if (name == null || name.isBlank()) {
-                name = "Item #" + itemRequest.productId();
-            }
-            if (price == null) {
-                price = BigDecimal.ZERO;
-            }
-
-            item.setProductName(name);
-            item.setUnitPrice(price);
+            item.setProductId(String.valueOf(product.getId()));
+            item.setProductName(product.getName());
+            item.setUnitPrice(product.getPrice());
             item.setQty(itemRequest.qty());
-            item.setLineTotal(price.multiply(BigDecimal.valueOf(itemRequest.qty())));
+
+            BigDecimal lineTotal = product.getPrice()
+                    .multiply(BigDecimal.valueOf(itemRequest.qty()));
+
+            item.setLineTotal(lineTotal);
+
             order.addItem(item);
-            subtotal = subtotal.add(item.getLineTotal());
+
+            subtotal = subtotal.add(lineTotal);
         }
 
         BigDecimal discountAmount = BigDecimal.ZERO;
