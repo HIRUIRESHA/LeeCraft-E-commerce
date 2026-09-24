@@ -491,9 +491,13 @@ export class CheckoutComponent implements OnInit {
     this.isSubmitting.set(true);
 
     const req: CheckoutRequest = {
-      ...(this.form.getRawValue() as Omit<CheckoutRequest, 'items' | 'promoCode'>),
-      items: this.cart.cartItems().map((i) => ({ productId: i.productId, qty: i.quantity })),
-      promoCode: this.appliedPromo() ? this.appliedPromo()!.code : undefined,
+      ...(this.form.getRawValue() as Omit<CheckoutRequest, 'items'>),
+      items: this.cart.cartItems().map((i) => ({
+  productId: String(i.productId),
+  productName: i.name,
+  unitPrice: i.price,
+  qty: i.quantity
+})),
     };
 
     this.orders.place(req).subscribe({
