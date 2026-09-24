@@ -1,38 +1,91 @@
-import { DecimalPipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { CommonModule, DecimalPipe } from '@angular/common';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CartService } from '../../core/services/cart.service';
 import { OrderService } from '../../core/services/order.service';
 import { CheckoutRequest } from '../../core/models/order.model';
 import { PromotionService, PromotionValidationResponse } from '../../core/services/promotion.service';
+import { AuthService } from '../../core/services/auth.service';
+import { ProfileService, UserAddress } from '../../core/services/profile.service';
 
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [ReactiveFormsModule, FormsModule, DecimalPipe],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, DecimalPipe, RouterLink],
   template: `
     <div class="wrap section">
       <div class="eyebrow">Checkout</div>
-      <h1 class="serif" style="font-size:32px;font-weight:500;margin:10px 0 34px;">Checkout</h1>
+      <h1 class="serif" style="font-size:32px;font-weight:500;margin:10px 0 24px;">Checkout</h1>
+
+      @if (auth.isAuthenticated()) {
+        <div class="account-autofill-banner">
+          <div class="auto-badge">✓ Express Checkout</div>
+          <div class="auto-text">
+            Logged in as <strong>{{ auth.user()?.fullName || auth.user()?.email }}</strong> &mdash; Your saved profile &amp; delivery address have been automatically pre-filled.
+          </div>
+        </div>
+      }
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="co-layout">
         <div>
           <div class="co-section">
             <h3>Customer Information</h3>
             <div class="form-row">
-              <div class="field"><label>Full Name</label><input type="text" formControlName="fullName" /></div>
-              <div class="field"><label>Email</label><input type="email" formControlName="email" /></div>
+              <div class="field"><label>Full Name *</label><input type="text" formControlName="fullName" /></div>
+              <div class="field"><label>Email *</label><input type="email" formControlName="email" /></div>
             </div>
-            <div class="field"><label>Contact Number</label><input type="tel" formControlName="contactNumber" placeholder="07X XXX XXXX" /></div>
+            <div class="field"><label>Contact Number *</label><input type="tel" formControlName="contactNumber" placeholder="07X XXX XXXX" /></div>
           </div>
 
           <div class="co-section">
-            <h3>Delivery Address</h3>
-            <div class="field"><label>Address</label><input type="text" formControlName="address" /></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <h3 style="margin:0;">Delivery Address</h3>
+              @if (savedAddresses().length > 0) {
+                <a routerLink="/account" class="manage-addr-link">Manage Addresses &rarr;</a>
+              }
+            </div>
+
+            @if (savedAddresses().length > 0) {
+              <div class="saved-addresses-box">
+                <div class="saved-label">Deliver to a Saved Address:</div>
+                <div class="saved-addr-grid">
+                  @for (addr of savedAddresses(); track addr.id) {
+                    <div
+                      class="saved-addr-card"
+                      [class.selected]="selectedAddressId() === addr.id"
+                      (click)="selectSavedAddress(addr)"
+                    >
+                      <div class="addr-card-top">
+                        <span class="addr-name">{{ addr.recipientName }}</span>
+                        @if (addr.isDefault) {
+                          <span class="default-pill">Default</span>
+                        }
+                      </div>
+                      <div class="addr-street">{{ addr.streetAddress }}, {{ addr.city }}</div>
+                      @if (addr.postalCode) {
+                        <div class="addr-zip">{{ addr.postalCode }}</div>
+                      }
+                      <div class="addr-phone">📞 {{ addr.phone }}</div>
+                    </div>
+                  }
+                  <div
+                    class="saved-addr-card new-addr-card"
+                    [class.selected]="selectedAddressId() === -1"
+                    (click)="useNewAddress()"
+                  >
+                    <div class="new-addr-icon">＋</div>
+                    <div class="addr-name">New Delivery Address</div>
+                    <div class="addr-street">Type below</div>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <div class="field"><label>Street Address *</label><input type="text" formControlName="address" /></div>
             <div class="form-row">
-              <div class="field"><label>City</label><input type="text" formControlName="city" /></div>
-              <div class="field"><label>Postal Code</label><input type="text" formControlName="postalCode" /></div>
+              <div class="field"><label>City *</label><input type="text" formControlName="city" /></div>
+              <div class="field"><label>Postal Code *</label><input type="text" formControlName="postalCode" /></div>
             </div>
           </div>
 
@@ -194,14 +247,135 @@ import { PromotionService, PromotionValidationResponse } from '../../core/servic
       color: #16a34a;
       font-weight: 600;
     }
+    .account-autofill-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      font-size: 13.5px;
+      color: #166534;
+    }
+    .auto-badge {
+      background: #16a34a;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .auto-text {
+      flex: 1;
+    }
+    .manage-addr-link {
+      font-size: 12px;
+      color: var(--wood-700);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .saved-addresses-box {
+      background: var(--cream, #fdfbf7);
+      border: 1px solid var(--line, #e2d9cf);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+    .saved-label {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--wood-800);
+      margin-bottom: 10px;
+    }
+    .saved-addr-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .saved-addr-card {
+      background: #fff;
+      border: 1.5px solid var(--line, #e2d9cf);
+      border-radius: 6px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 12.5px;
+      position: relative;
+    }
+    .saved-addr-card:hover {
+      border-color: var(--wood-600);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .saved-addr-card.selected {
+      border-color: var(--wood-800, #3d271d);
+      background: #fdfaf6;
+      box-shadow: 0 0 0 1px var(--wood-800, #3d271d);
+    }
+    .addr-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .addr-name {
+      font-weight: 600;
+      color: var(--wood-900);
+    }
+    .default-pill {
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    .addr-street {
+      color: var(--wood-700);
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+    .addr-zip {
+      color: var(--wood-500);
+      font-size: 11.5px;
+    }
+    .addr-phone {
+      font-size: 11px;
+      color: var(--wood-600);
+      margin-top: 4px;
+    }
+    .new-addr-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border-style: dashed;
+      background: transparent;
+      padding: 14px 10px;
+    }
+    .new-addr-icon {
+      font-size: 18px;
+      color: var(--wood-600);
+      margin-bottom: 4px;
+    }
   `],
 })
-export class CheckoutComponent {
+export class CheckoutComponent implements OnInit {
   private fb = inject(FormBuilder);
   public cart = inject(CartService);
+  public auth = inject(AuthService);
+  private profileService = inject(ProfileService);
   private orders = inject(OrderService);
   private promoService = inject(PromotionService);
   private router = inject(Router);
+
+  savedAddresses = signal<UserAddress[]>([]);
+  selectedAddressId = signal<number | null>(null);
 
   promoInput = signal('');
   appliedPromo = signal<PromotionValidationResponse | null>(null);
@@ -222,6 +396,62 @@ export class CheckoutComponent {
     shippingMethod: ['STANDARD' as const, Validators.required],
     contactPreference: ['PHONE' as const, Validators.required],
   });
+
+  ngOnInit(): void {
+    if (this.auth.isAuthenticated()) {
+      const user = this.auth.user();
+      if (user) {
+        this.form.patchValue({
+          fullName: user.fullName || '',
+          email: user.email || '',
+        });
+      }
+
+      this.profileService.getProfile().subscribe({
+        next: (profile) => {
+          if (profile) {
+            this.form.patchValue({
+              fullName: profile.fullName || this.form.value.fullName,
+              email: profile.email || this.form.value.email,
+              contactNumber: profile.phone || this.form.value.contactNumber,
+            });
+          }
+        },
+        error: () => {},
+      });
+
+      this.profileService.getAddresses().subscribe({
+        next: (addrs) => {
+          if (addrs && addrs.length > 0) {
+            this.savedAddresses.set(addrs);
+            const defaultAddr = addrs.find((a) => a.isDefault) || addrs[0];
+            this.selectSavedAddress(defaultAddr);
+          }
+        },
+        error: () => {},
+      });
+    }
+  }
+
+  selectSavedAddress(addr: UserAddress): void {
+    this.selectedAddressId.set(addr.id);
+    this.form.patchValue({
+      address: addr.streetAddress,
+      city: addr.city,
+      postalCode: addr.postalCode || '',
+      fullName: addr.recipientName || this.form.value.fullName,
+      contactNumber: addr.phone || this.form.value.contactNumber,
+    });
+  }
+
+  useNewAddress(): void {
+    this.selectedAddressId.set(-1);
+    this.form.patchValue({
+      address: '',
+      city: '',
+      postalCode: '',
+    });
+  }
 
   applyPromo(): void {
     const code = this.promoInput().trim();

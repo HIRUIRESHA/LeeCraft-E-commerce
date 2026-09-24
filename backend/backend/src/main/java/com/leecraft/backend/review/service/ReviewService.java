@@ -102,24 +102,76 @@ public class ReviewService {
 
     @Transactional
     public ReviewResponse addReview(Long productId, ReviewRequest request) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+        ReviewRequest resolvedReq = new ReviewRequest(
+                productId,
+                request.reviewerName(),
+                request.reviewerEmail(),
+                request.rating(),
+                request.comment(),
+                request.orderId()
+        );
+        return addGeneralOrProductReview(resolvedReq);
+    }
 
+    @Transactional
+    public ReviewResponse addGeneralOrProductReview(ReviewRequest request) {
         Review review = new Review();
-        review.setProduct(product);
         review.setReviewerName(request.reviewerName().trim());
         review.setReviewerEmail(request.reviewerEmail() != null ? request.reviewerEmail().trim() : null);
         review.setRating(request.rating());
         review.setComment(request.comment().trim());
+        review.setOrderId(request.orderId());
 
-        // Check if verified purchase
-        if (request.reviewerEmail() != null && !request.reviewerEmail().isBlank()) {
-            boolean hasPurchased = orderRepository.existsByEmailAndProductId(
-                    request.reviewerEmail().trim(), productId
-            );
+        String orderRef = (request.orderId() != null && !request.orderId().isBlank())
+                ? request.orderId().trim()
+                : null;
+        java.util.Optional<com.leecraft.backend.order.models.Order> matchedOrder = java.util.Optional.empty();
+        if (orderRef != null) {
+            matchedOrder = orderRepository.findByOrderNumber(orderRef);
+            if (matchedOrder.isEmpty()) {
+                try {
+                    Long numericId = Long.parseLong(orderRef);
+                    matchedOrder = orderRepository.findById(numericId);
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+
+        Long prodId = request.productId();
+        if (prodId != null && prodId > 0) {
+            Product product = productRepository.findById(prodId)
+                    .orElseThrow(() -> new RuntimeException("Product not found with id: " + prodId));
+            review.setProduct(product);
+            review.setReviewType("PRODUCT");
+
+            // Check if verified purchase for this product
+            boolean hasPurchased = false;
+            if (request.reviewerEmail() != null && !request.reviewerEmail().isBlank()) {
+                hasPurchased = orderRepository.existsByEmailAndProductId(
+                        request.reviewerEmail().trim(), prodId
+                );
+            }
+            if (!hasPurchased && matchedOrder.isPresent()) {
+                var o = matchedOrder.get();
+                if (o.getStatus() != com.leecraft.backend.order.models.OrderStatus.CANCELLED) {
+                    hasPurchased = o.getItems().stream()
+                            .anyMatch(i -> String.valueOf(prodId).equals(i.getProductId()));
+                }
+            }
             review.setVerifiedPurchase(hasPurchased);
         } else {
-            review.setVerifiedPurchase(false);
+            // Common Store Review
+            review.setProduct(null);
+            review.setReviewType("STORE");
+
+            // Check if verified customer
+            boolean isCustomer = false;
+            if (request.reviewerEmail() != null && !request.reviewerEmail().isBlank()) {
+                isCustomer = orderRepository.existsByEmailAndNotCancelled(request.reviewerEmail().trim());
+            }
+            if (!isCustomer && matchedOrder.isPresent()) {
+                isCustomer = matchedOrder.get().getStatus() != com.leecraft.backend.order.models.OrderStatus.CANCELLED;
+            }
+            review.setVerifiedPurchase(isCustomer);
         }
 
         Review saved = reviewRepository.save(review);

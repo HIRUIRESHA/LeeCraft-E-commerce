@@ -21,4 +21,11 @@ public class StoreReviewController {
             @RequestParam(defaultValue = "6") int limit) {
         return ResponseEntity.ok(reviewService.getStoreReviewSummary(limit));
     }
+
+    @PostMapping
+    public ResponseEntity<com.leecraft.backend.review.dto.ReviewResponse> createReview(
+            @jakarta.validation.Valid @RequestBody com.leecraft.backend.review.dto.ReviewRequest request) {
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED)
+                .body(reviewService.addGeneralOrProductReview(request));
+    }
 }

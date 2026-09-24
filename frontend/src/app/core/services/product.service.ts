@@ -177,4 +177,8 @@ export class ProductService {
   addReview(productId: number, req: CreateReviewRequest): Observable<Review> {
     return this.http.post<Review>(`${this.apiUrl}/${productId}/reviews`, req);
   }
+
+  submitReview(req: CreateReviewRequest): Observable<Review> {
+    return this.http.post<Review>(`${environment.apiUrl}/reviews`, req);
+  }
 }
