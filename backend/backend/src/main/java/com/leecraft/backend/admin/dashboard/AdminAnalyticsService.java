@@ -1,7 +1,6 @@
 package com.leecraft.backend.admin.dashboard;
 
 import com.leecraft.backend.admin.dashboard.dto.AnalyticsResponse;
-import com.leecraft.backend.admin.dashboard.dto.CategorySalesDto;
 import com.leecraft.backend.admin.dashboard.dto.ProductSalesDto;
 import com.leecraft.backend.admin.dashboard.dto.RevenueDataDto;
 import com.leecraft.backend.order.models.Order;
@@ -40,7 +39,6 @@ public class AdminAnalyticsService {
         this.orderItemRepository = orderItemRepository;
     }
 
-
     /**
      * Main analytics method.
      */
@@ -54,29 +52,19 @@ public class AdminAnalyticsService {
         List<OrderItem> orderItems =
                 orderItemRepository.findAll();
 
-
         // Build revenue and order-volume data
         List<RevenueDataDto> revenue =
                 buildRevenueData(orders);
-
 
         // Build top-selling product data
         List<ProductSalesDto> topSellingProducts =
                 buildProductSales(orderItems);
 
-
-        // Build top-selling category data
-        List<CategorySalesDto> topSellingCategories =
-                buildCategorySales(orderItems);
-
-
         return new AnalyticsResponse(
                 revenue,
-                topSellingProducts,
-                topSellingCategories
+                topSellingProducts
         );
     }
-
 
     /**
      * Creates revenue and order-volume data
@@ -92,27 +80,22 @@ public class AdminAnalyticsService {
         Map<String, Long> orderCountMap =
                 new LinkedHashMap<>();
 
-
         ZoneId zone =
                 ZoneId.systemDefault();
-
 
         DateTimeFormatter formatter =
                 DateTimeFormatter
                         .ofPattern("yyyy-MM-dd")
                         .withZone(zone);
 
-
         Instant now =
                 Instant.now();
-
 
         Instant from =
                 now.minus(
                         30,
                         ChronoUnit.DAYS
                 );
-
 
         /*
          * Create entries for all 30 days.
@@ -128,23 +111,19 @@ public class AdminAnalyticsService {
                             ChronoUnit.DAYS
                     );
 
-
             String period =
                     formatter.format(date);
-
 
             revenueMap.put(
                     period,
                     BigDecimal.ZERO
             );
 
-
             orderCountMap.put(
                     period,
                     0L
             );
         }
-
 
         /*
          * Add actual order information.
@@ -156,12 +135,10 @@ public class AdminAnalyticsService {
                 continue;
             }
 
-
             // Ignore orders older than 30 days
             if (order.getCreatedAt().isBefore(from)) {
                 continue;
             }
-
 
             // Ignore cancelled orders
             if (order.getStatus() ==
@@ -170,16 +147,13 @@ public class AdminAnalyticsService {
                 continue;
             }
 
-
             String period =
                     formatter.format(
                             order.getCreatedAt()
                     );
 
-
             BigDecimal currentRevenue =
                     revenueMap.get(period);
-
 
             /*
              * This protects against an order being
@@ -189,22 +163,18 @@ public class AdminAnalyticsService {
                 continue;
             }
 
-
             BigDecimal orderTotal =
                     order.getTotal();
-
 
             if (orderTotal == null) {
                 orderTotal = BigDecimal.ZERO;
             }
-
 
             // Add revenue
             revenueMap.put(
                     period,
                     currentRevenue.add(orderTotal)
             );
-
 
             // Add order count
             orderCountMap.put(
@@ -213,13 +183,11 @@ public class AdminAnalyticsService {
             );
         }
 
-
         /*
          * Convert maps into DTO list.
          */
         List<RevenueDataDto> result =
                 new ArrayList<>();
-
 
         for (String period :
                 revenueMap.keySet()) {
@@ -233,10 +201,8 @@ public class AdminAnalyticsService {
             );
         }
 
-
         return result;
     }
-
 
     /**
      * Creates top-selling product data.
@@ -250,7 +216,6 @@ public class AdminAnalyticsService {
         Map<String, ProductSalesData> salesMap =
                 new HashMap<>();
 
-
         for (OrderItem item : orderItems) {
 
             /*
@@ -259,7 +224,6 @@ public class AdminAnalyticsService {
             if (item.getOrder() == null) {
                 continue;
             }
-
 
             /*
              * Cancelled orders should not contribute
@@ -271,19 +235,15 @@ public class AdminAnalyticsService {
                 continue;
             }
 
-
             String productId =
                     item.getProductId();
-
 
             String productName =
                     item.getProductName();
 
-
             if (productId == null) {
                 productId = "";
             }
-
 
             if (productName == null
                     || productName.isBlank()) {
@@ -292,16 +252,13 @@ public class AdminAnalyticsService {
                         "Unknown Product";
             }
 
-
             long quantity =
                     item.getQty() != null
                             ? item.getQty()
                             : 0;
 
-
             ProductSalesData existing =
                     salesMap.get(productId);
-
 
             if (existing == null) {
 
@@ -319,7 +276,6 @@ public class AdminAnalyticsService {
                 existing.addQuantity(quantity);
             }
         }
-
 
         /*
          * Sort products from highest quantity
@@ -344,26 +300,6 @@ public class AdminAnalyticsService {
                 .toList();
     }
 
-
-    /**
-     * Creates top-selling category data.
-     *
-     * At the moment OrderItem contains productId
-     * and productName, but it does not contain
-     * category information.
-     *
-     * Therefore category analytics will return
-     * an empty list until category information is
-     * connected to the order item.
-     */
-    private List<CategorySalesDto> buildCategorySales(
-            List<OrderItem> orderItems
-    ) {
-
-        return List.of();
-    }
-
-
     /**
      * Internal class used to aggregate
      * product sales quantities.
@@ -375,7 +311,6 @@ public class AdminAnalyticsService {
         private final String productName;
 
         private long quantity;
-
 
         private ProductSalesData(
                 String productId,
@@ -390,7 +325,6 @@ public class AdminAnalyticsService {
             this.quantity = quantity;
         }
 
-
         /**
          * Add more sold quantity.
          */
@@ -401,7 +335,6 @@ public class AdminAnalyticsService {
             this.quantity += quantity;
         }
 
-
         /**
          * Get product ID.
          */
@@ -410,7 +343,6 @@ public class AdminAnalyticsService {
             return productId;
         }
 
-
         /**
          * Get product name.
          */
@@ -418,7 +350,6 @@ public class AdminAnalyticsService {
 
             return productName;
         }
-
 
         /**
          * Get quantity sold.
