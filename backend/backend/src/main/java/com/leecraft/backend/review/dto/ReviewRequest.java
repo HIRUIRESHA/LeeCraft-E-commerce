@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record ReviewRequest(
+        Long productId,
+
         @NotBlank(message = "Reviewer name is required")
         @Size(max = 100, message = "Name must not exceed 100 characters")
         String reviewerName,
@@ -22,5 +24,15 @@ public record ReviewRequest(
 
         @NotBlank(message = "Comment is required")
         @Size(max = 2000, message = "Comment must not exceed 2000 characters")
-        String comment
-) {}
+        String comment,
+
+        String orderId
+) {
+    public ReviewRequest(String reviewerName, String reviewerEmail, Integer rating, String comment) {
+        this(null, reviewerName, reviewerEmail, rating, comment, null);
+    }
+
+    public ReviewRequest(Long productId, String reviewerName, String reviewerEmail, Integer rating, String comment) {
+        this(productId, reviewerName, reviewerEmail, rating, comment, null);
+    }
+}

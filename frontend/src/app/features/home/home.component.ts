@@ -8,6 +8,7 @@ import { Product, Review, StoreReviewSummary } from '../../core/models/product.m
 import { BannerService, Banner } from '../../core/services/banner.service';
 import { SiteContentStore } from '../../core/services/site-content.store';
 import { PromotionItem, PromotionService } from '../../core/services/promotion.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-home',
@@ -379,10 +380,26 @@ import { PromotionItem, PromotionService } from '../../core/services/promotion.s
             <button
               type="button"
               class="filter-pill"
-              [class.active]="selectedRatingFilter() === 0"
-              (click)="setRatingFilter(0)"
+              [class.active]="selectedCategoryFilter() === 'ALL' && selectedRatingFilter() === 0"
+              (click)="setReviewCategoryFilter('ALL'); setRatingFilter(0)"
             >
               All Reviews ({{ reviewsList().length }})
+            </button>
+            <button
+              type="button"
+              class="filter-pill"
+              [class.active]="selectedCategoryFilter() === 'STORE'"
+              (click)="setReviewCategoryFilter('STORE')"
+            >
+              🏬 Store Experience ({{ countStoreReviews() }})
+            </button>
+            <button
+              type="button"
+              class="filter-pill"
+              [class.active]="selectedCategoryFilter() === 'PRODUCT'"
+              (click)="setReviewCategoryFilter('PRODUCT')"
+            >
+              🪵 Craft Reviews ({{ countProductReviews() }})
             </button>
             <button
               type="button"
@@ -441,14 +458,22 @@ import { PromotionItem, PromotionService } from '../../core/services/promotion.s
                 <!-- Review Content -->
                 <p class="review-body">"{{ rev.comment }}"</p>
 
-                <!-- Product Box -->
-                @if (rev.productName) {
+                <!-- Product Box or Common Store Experience Badge -->
+                @if (!rev.productId || rev.reviewType === 'STORE') {
+                  <div class="store-review-badge">
+                    <span class="store-badge-icon">🏬</span>
+                    <div class="store-badge-text">
+                      <span class="store-badge-title">Store &amp; Service Experience</span>
+                      <span class="store-badge-sub">Packaging, Delivery Speed &amp; Customer Care</span>
+                    </div>
+                  </div>
+                } @else if (rev.productName) {
                   <a [routerLink]="['/product', rev.productId]" class="reviewed-product-chip" [title]="'View ' + rev.productName">
                     @if (rev.productImage) {
                       <img [src]="rev.productImage" [alt]="rev.productName" class="chip-img" />
                     }
                     <div class="chip-details">
-                      <span class="chip-label">Purchased Item</span>
+                      <span class="chip-label">Purchased Craft</span>
                       <span class="chip-title">{{ rev.productName }}</span>
                     </div>
                     <span class="chip-arrow">&rarr;</span>
@@ -475,21 +500,47 @@ import { PromotionItem, PromotionService } from '../../core/services/promotion.s
             <button type="button" class="modal-close-btn" (click)="closeReviewModal()">✕</button>
           </div>
 
+          <!-- Review Type Selector: Common vs Product -->
+          <div class="review-type-selector">
+            <button
+              type="button"
+              class="type-pill"
+              [class.active]="reviewType() === 'STORE'"
+              (click)="setReviewType('STORE')"
+            >
+              🏬 Store Experience (Common)
+            </button>
+            <button
+              type="button"
+              class="type-pill"
+              [class.active]="reviewType() === 'PRODUCT'"
+              (click)="setReviewType('PRODUCT')"
+            >
+              🪵 Specific Handcrafted Craft
+            </button>
+          </div>
+
           @if (reviewSubmitSuccess()) {
             <div class="review-success-box">
               ✓ {{ reviewSubmitSuccess() }}
             </div>
           } @else {
             <form class="review-form" (ngSubmit)="submitReview()">
-              <!-- Product Select -->
-              <div class="field">
-                <label>Select Craft You Own *</label>
-                <select [(ngModel)]="reviewForm.productId" name="productId" required>
-                  @for (prod of allProducts(); track prod.id) {
-                    <option [value]="prod.id">{{ prod.name }} (Rs. {{ prod.price | number }})</option>
-                  }
-                </select>
-              </div>
+              @if (reviewType() === 'STORE') {
+                <div class="store-review-notice">
+                  🌟 You are sharing a <strong>general review</strong> about LeeCraft's overall shopping experience, packaging, island-wide delivery, or customer service.
+                </div>
+              } @else {
+                <!-- Product Select -->
+                <div class="field">
+                  <label>Select Craft You Own *</label>
+                  <select [(ngModel)]="reviewForm.productId" name="productId" required>
+                    @for (prod of allProducts(); track prod.id) {
+                      <option [value]="prod.id">{{ prod.name }} (Rs. {{ prod.price | number }})</option>
+                    }
+                  </select>
+                </div>
+              }
 
               <!-- Rating Select -->
               <div class="field">
@@ -1587,6 +1638,63 @@ import { PromotionItem, PromotionService } from '../../core/services/promotion.s
           grid-template-columns: 1fr;
         }
       }
+
+      .store-review-badge {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #fdfaf6;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 8px 12px;
+        margin-top: 14px;
+      }
+      .store-badge-icon {
+        font-size: 20px;
+      }
+      .store-badge-title {
+        font-weight: 600;
+        font-size: 12.5px;
+        color: var(--wood-900);
+        display: block;
+      }
+      .store-badge-sub {
+        font-size: 11px;
+        color: var(--wood-500);
+        display: block;
+      }
+      .review-type-selector {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+      .type-pill {
+        flex: 1;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 6px;
+        border: 1.5px solid var(--line);
+        background: #fff;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: var(--wood-700);
+      }
+      .type-pill.active {
+        border-color: var(--wood-800);
+        background: var(--wood-800);
+        color: #fff;
+      }
+      .store-review-notice {
+        background: #fefce8;
+        border: 1px solid #fef08a;
+        color: #854d0e;
+        font-size: 12.5px;
+        padding: 10px 14px;
+        border-radius: 6px;
+        margin-bottom: 14px;
+        line-height: 1.4;
+      }
     `,
   ],
 })
@@ -1595,6 +1703,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private readonly productService = inject(ProductService);
   private readonly bannerService = inject(BannerService);
   private readonly promoService = inject(PromotionService);
+  public readonly auth = inject(AuthService);
   protected readonly content = inject(SiteContentStore);
 
   protected readonly featured = signal<Product[]>([]);
@@ -1610,12 +1719,25 @@ export class HomeComponent implements OnInit, OnDestroy {
   protected readonly reviewsList = signal<Review[]>([]);
   protected readonly isLoadingReviews = signal<boolean>(true);
   protected readonly selectedRatingFilter = signal<number>(0);
+  protected readonly selectedCategoryFilter = signal<'ALL' | 'PRODUCT' | 'STORE'>('ALL');
+  protected readonly reviewType = signal<'STORE' | 'PRODUCT'>('STORE');
 
   protected readonly displayedReviews = computed(() => {
-    const filter = this.selectedRatingFilter();
-    const list = this.reviewsList();
-    if (filter === 0) return list;
-    return list.filter((r) => r.rating === filter);
+    const starFilter = this.selectedRatingFilter();
+    const typeFilter = this.selectedCategoryFilter();
+    let list = this.reviewsList();
+
+    if (typeFilter === 'PRODUCT') {
+      list = list.filter((r) => r.productId && r.productId > 0);
+    } else if (typeFilter === 'STORE') {
+      list = list.filter((r) => !r.productId || r.reviewType === 'STORE');
+    }
+
+    if (starFilter > 0) {
+      list = list.filter((r) => r.rating === starFilter);
+    }
+
+    return list;
   });
 
   // Write Review Modal
@@ -1756,6 +1878,22 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.selectedRatingFilter.set(stars);
   }
 
+  setReviewCategoryFilter(cat: 'ALL' | 'PRODUCT' | 'STORE'): void {
+    this.selectedCategoryFilter.set(cat);
+  }
+
+  setReviewType(type: 'STORE' | 'PRODUCT'): void {
+    this.reviewType.set(type);
+  }
+
+  countStoreReviews(): number {
+    return this.reviewsList().filter((r) => !r.productId || r.reviewType === 'STORE').length;
+  }
+
+  countProductReviews(): number {
+    return this.reviewsList().filter((r) => r.productId && r.productId > 0).length;
+  }
+
   countByRating(stars: number): number {
     return this.reviewsList().filter((r) => r.rating === stars).length;
   }
@@ -1770,12 +1908,18 @@ export class HomeComponent implements OnInit, OnDestroy {
   // Write Review Modal Handlers
   openReviewModal(productId?: number): void {
     if (productId) {
+      this.reviewType.set('PRODUCT');
       this.reviewForm.productId = productId;
-    } else if (this.allProducts().length > 0 && !this.reviewForm.productId) {
-      this.reviewForm.productId = this.allProducts()[0].id;
+    } else {
+      this.reviewType.set('STORE');
+      if (this.allProducts().length > 0 && !this.reviewForm.productId) {
+        this.reviewForm.productId = this.allProducts()[0].id;
+      }
     }
-    this.reviewForm.reviewerName = '';
-    this.reviewForm.reviewerEmail = '';
+
+    const currentUser = this.auth.user();
+    this.reviewForm.reviewerName = currentUser?.fullName || '';
+    this.reviewForm.reviewerEmail = currentUser?.email || '';
     this.reviewForm.rating = 5;
     this.reviewForm.comment = '';
     this.reviewSubmitError.set(null);
@@ -1789,7 +1933,9 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   submitReview(): void {
     const { productId, reviewerName, reviewerEmail, rating, comment } = this.reviewForm;
-    if (!productId) {
+    const isStore = this.reviewType() === 'STORE';
+
+    if (!isStore && !productId) {
       this.reviewSubmitError.set('Please select which handcrafted product you purchased.');
       return;
     }
@@ -1805,7 +1951,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.isSubmittingReview.set(true);
     this.reviewSubmitError.set(null);
 
-    this.productService.addReview(productId, {
+    this.productService.submitReview({
+      productId: isStore ? null : productId,
       reviewerName: reviewerName.trim(),
       reviewerEmail: reviewerEmail.trim() || undefined,
       rating,
@@ -1813,7 +1960,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     }).subscribe({
       next: () => {
         this.isSubmittingReview.set(false);
-        this.reviewSubmitSuccess.set('Thank you! Your verified review has been posted.');
+        this.reviewSubmitSuccess.set(
+          isStore
+            ? 'Thank you for reviewing your LeeCraft shopping experience!'
+            : 'Thank you! Your verified craft review has been posted.'
+        );
         this.notify.success('Thank you! Your review has been submitted.');
         
         // Reload real reviews immediately from backend

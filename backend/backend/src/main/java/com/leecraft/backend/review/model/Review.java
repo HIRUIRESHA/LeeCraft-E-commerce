@@ -12,8 +12,8 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "product_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = true)
     private Product product;
 
     @Column(name = "reviewer_name", nullable = false, length = 100)
@@ -30,6 +30,12 @@ public class Review {
 
     @Column(name = "verified_purchase", nullable = false)
     private boolean verifiedPurchase = false;
+
+    @Column(name = "order_id", length = 100)
+    private String orderId;
+
+    @Column(name = "review_type", length = 30)
+    private String reviewType = "PRODUCT";
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -61,6 +67,12 @@ public class Review {
 
     public boolean isVerifiedPurchase() { return verifiedPurchase; }
     public void setVerifiedPurchase(boolean verifiedPurchase) { this.verifiedPurchase = verifiedPurchase; }
+
+    public String getOrderId() { return orderId; }
+    public void setOrderId(String orderId) { this.orderId = orderId; }
+
+    public String getReviewType() { return reviewType; }
+    public void setReviewType(String reviewType) { this.reviewType = reviewType; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

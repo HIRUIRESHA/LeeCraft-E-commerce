@@ -4,7 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CartService } from '../../core/services/cart.service';
 import { ProductService } from '../../core/services/product.service';
-import { Product, ProductReviewSummary, Review } from '../../core/models/product.model';
+import { AuthService } from '../../core/services/auth.service';
+import { OrderService } from '../../core/services/order.service';
+import { Order } from '../../core/models/order.model';
+import { CreateReviewRequest, Product, ProductReviewSummary, Review } from '../../core/models/product.model';
 import { ProductCardComponent } from '../shop/product-card.component';
 import { woodSwatch } from '../../core/utils/wood-swatch';
 
@@ -180,6 +183,38 @@ import { woodSwatch } from '../../core/utils/wood-swatch';
             </button>
           </div>
 
+          <!-- Purchase & Delivery Verification Status Banner -->
+          @if (userDeliveredOrder(); as ord) {
+            <div class="user-delivery-banner">
+              <div class="udb-icon">✓</div>
+              <div class="udb-info">
+                <div class="udb-title">Verified Purchase &bull; Delivered Order #{{ ord.id }}</div>
+                <div class="udb-desc">
+                  You received this handcrafted item on {{ ord.createdAt | date:'mediumDate' }}. Share your feedback on wood grain, knife durability, and finish!
+                </div>
+              </div>
+              <button
+                type="button"
+                class="btn btn-primary btn-sm"
+                (click)="openDeliveredReview()"
+              >
+                ★ Review Delivered Item
+              </button>
+            </div>
+          } @else {
+            @if (userPendingOrder(); as ord) {
+              <div class="user-delivery-banner pending">
+                <div class="udb-icon">🚚</div>
+                <div class="udb-info">
+                  <div class="udb-title">Order #{{ ord.id }} is in Progress ({{ ord.status }})</div>
+                  <div class="udb-desc">
+                    Your handcrafted craft is currently on courier route. Reviews become available once your package is marked Delivered!
+                  </div>
+                </div>
+              </div>
+            }
+          }
+
           <!-- Review Summary Breakdown Card -->
           <div class="review-stats-card">
             <div class="stats-overall">
@@ -206,8 +241,23 @@ import { woodSwatch } from '../../core/utils/wood-swatch';
 
           <!-- Write Review Form -->
           @if (showReviewForm()) {
-            <form class="write-review-form" (ngSubmit)="submitReview(p.id)">
-              <h3 style="margin-top:0;font-size:18px;">Share your experience</h3>
+            <form id="write-review-box" class="write-review-form" (ngSubmit)="submitReview(p.id)">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <h3 style="margin:0;font-size:18px;">Share your experience</h3>
+                @if (userDeliveredOrder()) {
+                  <span class="verified-purchaser-pill">✓ Verified Delivery</span>
+                }
+              </div>
+
+              @if (userDeliveredOrder(); as ord) {
+                <div class="delivered-purchase-chip">
+                  <div class="dpc-icon">🪵</div>
+                  <div class="dpc-text">
+                    <strong>Item Received from Order #{{ ord.id }}</strong>
+                    <span class="dpc-sub">Your verified review will be marked with a green Verified Buyer checkmark.</span>
+                  </div>
+                </div>
+              }
 
               <!-- Interactive Star Selector -->
               <div class="field">
@@ -238,6 +288,9 @@ import { woodSwatch } from '../../core/utils/wood-swatch';
                     name="reviewerName"
                     placeholder="e.g. Priyantha Fernando"
                   />
+                  <small style="color:var(--wood-500);font-size:11px;">
+                    {{ auth.isAuthenticated() ? '✓ Auto-filled from your profile' : 'Public display name' }}
+                  </small>
                 </div>
                 <div class="field">
                   <label>Email Address (Optional)</label>
@@ -247,7 +300,9 @@ import { woodSwatch } from '../../core/utils/wood-swatch';
                     name="reviewerEmail"
                     placeholder="Used to verify your purchase"
                   />
-                  <small style="color:var(--wood-500);font-size:11px;">Matches previous orders for a Verified Buyer badge</small>
+                  <small style="color:var(--wood-500);font-size:11px;">
+                    {{ auth.isAuthenticated() ? '✓ Auto-filled &bull; Awards Verified Buyer badge' : 'Matches previous orders for a Verified Buyer badge' }}
+                  </small>
                 </div>
               </div>
 
@@ -426,6 +481,77 @@ import { woodSwatch } from '../../core/utils/wood-swatch';
       justify-content: space-between;
       margin-bottom: 24px;
     }
+    .user-delivery-banner {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #f0fdf4;
+      border: 1.5px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 24px;
+    }
+    .user-delivery-banner.pending {
+      background: #fefce8;
+      border-color: #fef08a;
+    }
+    .udb-icon {
+      font-size: 22px;
+      line-height: 1;
+    }
+    .udb-info {
+      flex: 1;
+    }
+    .udb-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #166534;
+      margin-bottom: 2px;
+    }
+    .user-delivery-banner.pending .udb-title {
+      color: #854d0e;
+    }
+    .udb-desc {
+      font-size: 12.5px;
+      color: #15803d;
+      line-height: 1.35;
+    }
+    .user-delivery-banner.pending .udb-desc {
+      color: #a16207;
+    }
+    .verified-purchaser-pill {
+      background: #ecfdf5;
+      color: #059669;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #a7f3d0;
+    }
+    .delivered-purchase-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+    }
+    .dpc-icon {
+      font-size: 18px;
+    }
+    .dpc-text {
+      font-size: 12.5px;
+      color: #166534;
+      line-height: 1.35;
+    }
+    .dpc-sub {
+      display: block;
+      font-size: 11px;
+      color: #15803d;
+      margin-top: 1px;
+    }
     .review-stats-card {
       display: flex;
       gap: 40px;
@@ -584,6 +710,11 @@ export class ProductDetailComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly products = inject(ProductService);
   private readonly cart = inject(CartService);
+  public readonly auth = inject(AuthService);
+  private readonly orderService = inject(OrderService);
+
+  userDeliveredOrder = signal<Order | null>(null);
+  userPendingOrder = signal<Order | null>(null);
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
@@ -600,6 +731,39 @@ export class ProductDetailComponent implements OnInit {
     this.showReviewForm.set(false);
     this.reviewSuccess.set(false);
     this.reviewError.set(null);
+    this.userDeliveredOrder.set(null);
+    this.userPendingOrder.set(null);
+
+    // Auto-fill reviewer information if user is logged in
+    if (this.auth.isAuthenticated()) {
+      const user = this.auth.user();
+      if (user) {
+        this.reviewForm.reviewerName = user.fullName || '';
+        this.reviewForm.reviewerEmail = user.email || '';
+      }
+
+      // Check if user has an order for this product
+      this.orderService.getMyOrders().subscribe({
+        next: (orders) => {
+          if (!orders || orders.length === 0) return;
+          const prodIdStr = String(id);
+          const delivered = orders.find(
+            (o) => o.status === 'DELIVERED' && o.items?.some((i) => String(i.productId) === prodIdStr)
+          );
+          if (delivered) {
+            this.userDeliveredOrder.set(delivered);
+          } else {
+            const pending = orders.find(
+              (o) => o.status !== 'CANCELLED' && o.items?.some((i) => String(i.productId) === prodIdStr)
+            );
+            if (pending) {
+              this.userPendingOrder.set(pending);
+            }
+          }
+        },
+        error: (err) => console.warn('Could not check user order history for reviews:', err),
+      });
+    }
 
     // Fetch primary product
     this.products.get(id).subscribe({
@@ -674,6 +838,16 @@ export class ProductDetailComponent implements OnInit {
     return Math.round((count / summary.totalReviews) * 100);
   }
 
+  openDeliveredReview(): void {
+    this.showReviewForm.set(true);
+    setTimeout(() => {
+      const el = document.getElementById('write-review-box');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
+  }
+
   submitReview(productId: number): void {
     if (!this.reviewForm.reviewerName.trim() || !this.reviewForm.comment.trim()) {
       this.reviewError.set('Please fill out all required fields.');
@@ -683,13 +857,17 @@ export class ProductDetailComponent implements OnInit {
     this.isSubmittingReview.set(true);
     this.reviewError.set(null);
 
+    const req: CreateReviewRequest = {
+      productId,
+      reviewerName: this.reviewForm.reviewerName.trim(),
+      reviewerEmail: this.reviewForm.reviewerEmail ? this.reviewForm.reviewerEmail.trim() : undefined,
+      rating: this.reviewForm.rating,
+      comment: this.reviewForm.comment.trim(),
+      orderId: this.userDeliveredOrder()?.id || null,
+    };
+
     this.products
-      .addReview(productId, {
-        reviewerName: this.reviewForm.reviewerName.trim(),
-        reviewerEmail: this.reviewForm.reviewerEmail ? this.reviewForm.reviewerEmail.trim() : undefined,
-        rating: this.reviewForm.rating,
-        comment: this.reviewForm.comment.trim(),
-      })
+      .addReview(productId, req)
       .subscribe({
         next: (created) => {
           this.isSubmittingReview.set(false);

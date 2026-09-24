@@ -41,5 +41,21 @@ public class DatabaseSchemaFixer implements CommandLineRunner {
             } catch (Exception ignored) {
             }
         }
+
+        // Allow common reviews with null product_id on reviews table
+        try {
+            jdbcTemplate.execute("ALTER TABLE reviews ALTER COLUMN product_id DROP NOT NULL");
+            log.info("Database schema patch: Dropped NOT NULL constraint on reviews.product_id");
+        } catch (Exception e) {
+            log.debug("Notice on reviews.product_id schema patch: {}", e.getMessage());
+        }
+
+        // Ensure order_id on reviews is VARCHAR(100) so order numbers (e.g. LC-123456) can be stored
+        try {
+            jdbcTemplate.execute("ALTER TABLE reviews ALTER COLUMN order_id TYPE VARCHAR(100) USING order_id::text");
+            log.info("Database schema patch: Updated reviews.order_id to VARCHAR(100)");
+        } catch (Exception e) {
+            log.debug("Notice on reviews.order_id schema patch: {}", e.getMessage());
+        }
     }
 }

@@ -30,8 +30,15 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         """)
     BigDecimal sumRevenue();
 
-    @Query("select count(o) > 0 from Order o join o.items i where lower(o.email) = lower(:email) and i.productId = :productId and o.status <> com.leecraft.backend.order.models.OrderStatus.CANCELLED")
-    boolean existsByEmailAndProductId(@Param("email") String email, @Param("productId") Long productId);
+    @Query("select count(o) > 0 from Order o join o.items i where lower(o.email) = lower(:email) and (i.productId = :productId or i.productId = concat('', :productId)) and o.status <> com.leecraft.backend.order.models.OrderStatus.CANCELLED")
+    boolean existsByEmailAndProductId(@Param("email") String email, @Param("productId") String productId);
+
+    default boolean existsByEmailAndProductId(String email, Long productId) {
+        return productId != null && existsByEmailAndProductId(email, String.valueOf(productId));
+    }
+
+    @Query("select count(o) > 0 from Order o where lower(o.email) = lower(:email) and o.status <> com.leecraft.backend.order.models.OrderStatus.CANCELLED")
+    boolean existsByEmailAndNotCancelled(@Param("email") String email);
 
     List<Order> findByUserIdOrderByCreatedAtDesc(Long userId);
 

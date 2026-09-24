@@ -23,13 +23,14 @@ export interface Product {
 
 export interface Review {
   id: number;
-  productId: number;
+  productId?: number | null;
   productName?: string;
   productImage?: string;
   reviewerName: string;
   rating: number;
   comment: string;
   verifiedPurchase: boolean;
+  reviewType?: 'PRODUCT' | 'STORE' | string;
   createdAt: string;
 }
 
@@ -49,8 +50,10 @@ export interface ProductReviewSummary {
 }
 
 export interface CreateReviewRequest {
+  productId?: number | null;
   reviewerName: string;
   reviewerEmail?: string;
   rating: number;
   comment: string;
+  orderId?: string | number | null;
 }
