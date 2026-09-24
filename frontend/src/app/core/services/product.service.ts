@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { CreateReviewRequest, Product, ProductReviewSummary, Review } from '../models/product.model';
+import { CreateReviewRequest, Product, ProductReviewSummary, Review, StoreReviewSummary } from '../models/product.model';
 
 interface BackendProduct {
   id: number;
@@ -170,7 +170,11 @@ export class ProductService {
     return this.http.get<ProductReviewSummary>(`${this.apiUrl}/${productId}/reviews`);
   }
 
+  getFeaturedReviews(limit = 6): Observable<StoreReviewSummary> {
+    return this.http.get<StoreReviewSummary>(`${environment.apiUrl}/reviews/featured?limit=${limit}`);
+  }
+
   addReview(productId: number, req: CreateReviewRequest): Observable<Review> {
     return this.http.post<Review>(`${this.apiUrl}/${productId}/reviews`, req);
   }
-}
+}

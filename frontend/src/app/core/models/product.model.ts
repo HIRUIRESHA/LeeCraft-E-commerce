@@ -24,11 +24,20 @@ export interface Product {
 export interface Review {
   id: number;
   productId: number;
+  productName?: string;
+  productImage?: string;
   reviewerName: string;
   rating: number;
   comment: string;
   verifiedPurchase: boolean;
   createdAt: string;
+}
+
+export interface StoreReviewSummary {
+  averageRating: number;
+  totalReviews: number;
+  fiveStarCount: number;
+  reviews: Review[];
 }
 
 export interface ProductReviewSummary {
@@ -44,4 +53,4 @@ export interface CreateReviewRequest {
   reviewerEmail?: string;
   rating: number;
   comment: string;
-}
+}
