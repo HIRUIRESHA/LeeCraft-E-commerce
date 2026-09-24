@@ -1,4 +1,13 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  inject
+} from '@angular/core';
+
 import { CommonModule } from '@angular/common';
 
 import { DashboardService } from '../../services/dashboard.service';
@@ -38,7 +47,6 @@ Chart.register(
   template: `
     <main class="wrap section">
 
-      <!-- PAGE HEADER -->
       <div class="eyebrow">
         Admin
       </div>
@@ -54,8 +62,10 @@ Chart.register(
         Store Dashboard
       </h1>
 
-
+      <!-- ================================================= -->
       <!-- LOADING -->
+      <!-- ================================================= -->
+
       @if (loading) {
 
         <div
@@ -72,7 +82,10 @@ Chart.register(
       }
 
 
+      <!-- ================================================= -->
       <!-- ERROR -->
+      <!-- ================================================= -->
+
       @if (errorMessage) {
 
         <div
@@ -83,6 +96,7 @@ Chart.register(
             color:#9b2c2c;
           "
         >
+
           {{ errorMessage }}
 
           <button
@@ -98,18 +112,24 @@ Chart.register(
           >
             Retry
           </button>
+
         </div>
 
       }
 
 
+      <!-- ================================================= -->
+      <!-- DASHBOARD -->
+      <!-- ================================================= -->
+
       @if (dashboard && !loading) {
 
         <section>
 
-          <!-- ========================================= -->
-          <!-- STATISTICS CARDS                         -->
-          <!-- ========================================= -->
+
+          <!-- ================================================= -->
+          <!-- STATISTICS -->
+          <!-- ================================================= -->
 
           <div
             class="grid admin-grid"
@@ -117,6 +137,7 @@ Chart.register(
           >
 
             <!-- TOTAL SALES -->
+
             <div class="card stat-card">
 
               <div class="num">
@@ -132,6 +153,7 @@ Chart.register(
 
 
             <!-- PRODUCTS -->
+
             <div class="card stat-card">
 
               <div class="num">
@@ -146,6 +168,7 @@ Chart.register(
 
 
             <!-- ORDERS -->
+
             <div class="card stat-card">
 
               <div class="num">
@@ -160,6 +183,7 @@ Chart.register(
 
 
             <!-- ABANDONED CARTS -->
+
             <div class="card stat-card">
 
               <div class="num">
@@ -175,126 +199,229 @@ Chart.register(
           </div>
 
 
-          <!-- ========================================= -->
-          <!-- SALES & REVENUE ANALYTICS                -->
-          <!-- ========================================= -->
+          <!-- ================================================= -->
+          <!-- ANALYTICS -->
+          <!-- ================================================= -->
 
           @if (analytics) {
+
+
+            <!-- ================================================= -->
+            <!-- REVENUE CHART -->
+            <!-- ================================================= -->
 
             <div
               class="card"
               style="
-                padding:22px;
+                padding:24px;
                 margin-bottom:24px;
+                border-radius:12px;
               "
             >
 
-              <h3
-                style="
-                  margin-top:0;
-                  font-size:15px;
-                "
-              >
-                Sales & Revenue Analytics
-              </h3>
-
-              <p
-                style="
-                  font-size:13px;
-                  color:var(--wood-700);
-                  margin-bottom:20px;
-                "
-              >
-                Revenue and order volume
-              </p>
+              <!-- HEADER -->
 
               <div
                 style="
-                  position:relative;
-                  height:350px;
-                  width:100%;
+                  display:flex;
+                  justify-content:space-between;
+                  align-items:flex-start;
+                  gap:20px;
+                  margin-bottom:20px;
                 "
               >
-                <canvas id="revenueChart"></canvas>
+
+                <div>
+
+                  <h3
+                    style="
+                      margin:0;
+                      font-size:16px;
+                      font-weight:600;
+                      color:var(--wood-900);
+                    "
+                  >
+                    Sales & Revenue
+                  </h3>
+
+                  <p
+                    style="
+                      margin:5px 0 0;
+                      font-size:12.5px;
+                      color:var(--wood-700);
+                    "
+                  >
+                    Revenue performance over the last 30 days
+                  </p>
+
+                </div>
+
+
+                <!-- PERIOD -->
+
+                <span
+                  style="
+                    flex-shrink:0;
+                    font-size:11px;
+                    padding:5px 10px;
+                    border:1px solid var(--line);
+                    border-radius:20px;
+                    color:var(--wood-700);
+                    background:#faf8f5;
+                    white-space:nowrap;
+                  "
+                >
+                  Last 30 days
+                </span>
+
               </div>
+
+
+              <!-- REVENUE DATA -->
+
+              @if (analytics.revenue.length === 0) {
+
+                <p
+                  style="
+                    font-size:13.5px;
+                    color:var(--wood-700);
+                    margin:20px 0 0;
+                  "
+                >
+                  No revenue data available.
+                </p>
+
+              } @else {
+
+                <div
+                  style="
+                    position:relative;
+                    height:350px;
+                    width:100%;
+                  "
+                >
+
+                  <canvas #revenueChart></canvas>
+
+                </div>
+
+              }
 
             </div>
 
 
-            <!-- TOP SELLING PRODUCTS + CATEGORIES -->
+            <!-- ================================================= -->
+            <!-- TOP-SELLING PRODUCTS -->
+            <!-- ================================================= -->
 
             <div
-              class="grid"
+              class="card"
               style="
-                grid-template-columns:1fr 1fr;
-                gap:24px;
+                padding:24px;
                 margin-bottom:24px;
+                border-radius:12px;
+                max-width:700px;
               "
             >
 
-              <!-- TOP PRODUCTS -->
+              <!-- HEADER -->
 
               <div
-                class="card"
-                style="padding:22px;"
+                style="
+                  display:flex;
+                  justify-content:space-between;
+                  align-items:flex-start;
+                  gap:20px;
+                  margin-bottom:16px;
+                "
               >
 
-                <h3
+                <div>
+
+                  <h3
+                    style="
+                      margin:0;
+                      font-size:16px;
+                      font-weight:600;
+                      color:var(--wood-900);
+                    "
+                  >
+                    Top-Selling Products
+                  </h3>
+
+                  <p
+                    style="
+                      margin:5px 0 0;
+                      font-size:12.5px;
+                      color:var(--wood-700);
+                    "
+                  >
+                    Products ranked by units sold
+                  </p>
+
+                </div>
+
+
+                <!-- TOP 10 -->
+
+                <span
                   style="
-                    margin-top:0;
-                    font-size:15px;
+                    flex-shrink:0;
+                    font-size:11px;
+                    padding:5px 10px;
+                    border:1px solid var(--line);
+                    border-radius:20px;
+                    color:var(--wood-700);
+                    background:#faf8f5;
+                    white-space:nowrap;
                   "
                 >
-                  Top-Selling Products
-                </h3>
+                  Top 10
+                </span>
+
+              </div>
+
+
+              <!-- PRODUCT DATA -->
+
+              @if (
+                analytics.topSellingProducts.length === 0
+              ) {
+
+                <p
+                  style="
+                    font-size:13.5px;
+                    color:var(--wood-700);
+                    margin:20px 0 0;
+                  "
+                >
+                  No product sales data available.
+                </p>
+
+              } @else {
 
                 <div
                   style="
                     position:relative;
                     height:300px;
+                    width:100%;
                   "
                 >
-                  <canvas id="productChart"></canvas>
+
+                  <canvas #productChart></canvas>
+
                 </div>
 
-              </div>
-
-
-              <!-- TOP CATEGORIES -->
-
-              <div
-                class="card"
-                style="padding:22px;"
-              >
-
-                <h3
-                  style="
-                    margin-top:0;
-                    font-size:15px;
-                  "
-                >
-                  Top-Selling Categories
-                </h3>
-
-                <div
-                  style="
-                    position:relative;
-                    height:300px;
-                  "
-                >
-                  <canvas id="categoryChart"></canvas>
-                </div>
-
-              </div>
+              }
 
             </div>
 
           }
 
 
-          <!-- ========================================= -->
-          <!-- DASHBOARD CONTENT                         -->
-          <!-- ========================================= -->
+          <!-- ================================================= -->
+          <!-- EXISTING DASHBOARD CONTENT -->
+          <!-- ================================================= -->
 
           <div
             class="grid"
@@ -305,7 +432,9 @@ Chart.register(
           >
 
 
-            <!-- BEST SELLING PRODUCTS -->
+            <!-- ================================================= -->
+            <!-- BEST SELLING BOARDS -->
+            <!-- ================================================= -->
 
             <div
               class="card"
@@ -320,6 +449,7 @@ Chart.register(
               >
                 Best-Selling Boards
               </h3>
+
 
               @if (
                 dashboard.bestSellingProducts.length === 0
@@ -373,7 +503,9 @@ Chart.register(
             </div>
 
 
+            <!-- ================================================= -->
             <!-- TOP CHATBOT QUESTIONS -->
+            <!-- ================================================= -->
 
             <div
               class="card"
@@ -388,6 +520,7 @@ Chart.register(
               >
                 Top Chatbot Questions
               </h3>
+
 
               @if (
                 dashboard.topChatbotQuestions.length === 0
@@ -427,7 +560,9 @@ Chart.register(
             </div>
 
 
-            <!-- LOW STOCK PRODUCTS -->
+            <!-- ================================================= -->
+            <!-- LOW STOCK -->
+            <!-- ================================================= -->
 
             <div
               class="card"
@@ -442,6 +577,7 @@ Chart.register(
               >
                 Low Stock Products
               </h3>
+
 
               @if (
                 dashboard.lowStockProducts.length === 0
@@ -495,7 +631,9 @@ Chart.register(
             </div>
 
 
-            <!-- OUT OF STOCK PRODUCTS -->
+            <!-- ================================================= -->
+            <!-- OUT OF STOCK -->
+            <!-- ================================================= -->
 
             <div
               class="card"
@@ -510,6 +648,7 @@ Chart.register(
               >
                 Out of Stock Products
               </h3>
+
 
               @if (
                 dashboard.outOfStockProducts.length === 0
@@ -563,7 +702,9 @@ Chart.register(
             </div>
 
 
+            <!-- ================================================= -->
             <!-- RECENT ORDERS -->
+            <!-- ================================================= -->
 
             <div
               class="card"
@@ -578,6 +719,7 @@ Chart.register(
               >
                 Recent Orders
               </h3>
+
 
               @if (
                 dashboard.recentOrders.length === 0
@@ -650,10 +792,30 @@ Chart.register(
     </main>
   `
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent
+  implements OnInit, OnDestroy {
 
   private readonly dashboardService =
     inject(DashboardService);
+
+  private readonly changeDetectorRef =
+    inject(ChangeDetectorRef);
+
+
+  // =====================================================
+  // CANVAS REFERENCES
+  // =====================================================
+
+  @ViewChild('revenueChart')
+  revenueCanvas?: ElementRef<HTMLCanvasElement>;
+
+  @ViewChild('productChart')
+  productCanvas?: ElementRef<HTMLCanvasElement>;
+
+
+  // =====================================================
+  // DATA
+  // =====================================================
 
   dashboard: DashboardData | null = null;
 
@@ -663,90 +825,117 @@ export class DashboardComponent implements OnInit {
 
   errorMessage = '';
 
+
+  // =====================================================
+  // CHART INSTANCES
+  // =====================================================
+
   revenueChart: Chart | null = null;
 
   productChart: Chart | null = null;
 
-  categoryChart: Chart | null = null;
 
+  // =====================================================
+  // INIT
+  // =====================================================
 
   ngOnInit(): void {
     this.loadDashboard();
   }
 
 
+  // =====================================================
+  // LOAD DASHBOARD
+  // =====================================================
+
   loadDashboard(): void {
+
+    this.destroyCharts();
 
     this.loading = true;
 
     this.errorMessage = '';
 
+    this.dashboardService
+      .getDashboard()
+      .subscribe({
 
-    this.dashboardService.getDashboard().subscribe({
+        next: (data: DashboardData) => {
 
-      next: (data: DashboardData) => {
+          this.dashboard = data;
 
-        this.dashboard = data;
+          this.loadAnalytics();
 
-        this.loadAnalytics();
+        },
 
-      },
+        error: (error) => {
 
-      error: (error) => {
+          console.error(
+            'Failed to load dashboard:',
+            error
+          );
 
-        console.error(
-          'Failed to load dashboard:',
-          error
-        );
+          this.errorMessage =
+            'Unable to load dashboard data. Please make sure the backend is running.';
 
-        this.errorMessage =
-          'Unable to load dashboard data. Please make sure the backend is running.';
+          this.loading = false;
 
-        this.loading = false;
+        }
 
-      }
-
-    });
+      });
 
   }
 
+
+  // =====================================================
+  // LOAD ANALYTICS
+  // =====================================================
 
   loadAnalytics(): void {
 
-    this.dashboardService.getAnalytics().subscribe({
+    this.dashboardService
+      .getAnalytics()
+      .subscribe({
 
-      next: (data: AnalyticsData) => {
+        next: (data: AnalyticsData) => {
 
-        console.log('Analytics data:', data);
+          console.log(
+            'Analytics data:',
+            data
+          );
 
-        this.analytics = data;
+          this.analytics = data;
 
-        this.loading = false;
+          this.loading = false;
 
-        setTimeout(() => {
+          this.changeDetectorRef.detectChanges();
+
           this.createCharts();
-        });
 
-      },
+        },
 
-      error: (error) => {
+        error: (error) => {
 
-        console.error(
-          'Failed to load analytics:',
-          error
-        );
+          console.error(
+            'Failed to load analytics:',
+            error
+          );
 
-        this.errorMessage =
-          'Dashboard loaded, but analytics could not be loaded.';
+          this.errorMessage =
+            'Dashboard loaded, but analytics could not be loaded.';
 
-        this.loading = false;
+          this.loading = false;
 
-      }
+        }
 
-    });
+      });
 
   }
 
+
+  // =====================================================
+  // CREATE CHARTS
+  // =====================================================
 
   createCharts(): void {
 
@@ -754,231 +943,512 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    this.createRevenueChart();
+    this.destroyCharts();
 
-    this.createProductChart();
+    if (
+      this.analytics.revenue.length > 0
+    ) {
 
-    this.createCategoryChart();
+      this.createRevenueChart();
+
+    }
+
+    if (
+      this.analytics.topSellingProducts.length > 0
+    ) {
+
+      this.createProductChart();
+
+    }
 
   }
 
+
+  // =====================================================
+  // REVENUE CHART
+  // =====================================================
 
   createRevenueChart(): void {
 
-    const canvas =
-      document.getElementById(
-        'revenueChart'
-      ) as HTMLCanvasElement | null;
+    if (
+      !this.revenueCanvas ||
+      !this.analytics
+    ) {
 
-    if (!canvas || !this.analytics) {
+      console.warn(
+        'Revenue canvas not available'
+      );
+
       return;
     }
 
+    const canvas =
+      this.revenueCanvas.nativeElement;
 
-    if (this.revenueChart) {
-      this.revenueChart.destroy();
-    }
+    const revenue =
+      this.analytics.revenue;
 
+    this.revenueChart =
+      new Chart(canvas, {
 
-    this.revenueChart = new Chart(canvas, {
+        type: 'line',
 
-      type: 'line',
+        data: {
 
-      data: {
+          labels: revenue.map(item => {
 
-        labels: this.analytics.revenue.map(
-          item => item.period
-        ),
+            const date =
+              new Date(item.period);
 
-        datasets: [
+            return date.toLocaleDateString(
+              'en-GB',
+              {
+                day: '2-digit',
+                month: 'short'
+              }
+            );
 
-          {
-            label: 'Revenue',
+          }),
 
-            data: this.analytics.revenue.map(
-              item => item.revenue
-            ),
+          datasets: [
 
-            tension: 0.3,
+            {
 
-            fill: false
-          }
+              label: 'Revenue',
 
-        ]
+              data: revenue.map(
+                item => item.revenue
+              ),
 
-      },
+              tension: 0.4,
 
-      options: {
+              fill: true,
 
-        responsive: true,
+              borderWidth: 2.5,
 
-        maintainAspectRatio: false,
+              borderColor:
+                '#8b5e3c',
 
-        plugins: {
+              backgroundColor:
+                'rgba(139, 94, 60, 0.10)',
 
-          legend: {
-            display: true
-          },
+              pointRadius: 3,
 
-          tooltip: {
-            enabled: true
-          }
+              pointHoverRadius: 6,
+
+              pointBackgroundColor:
+                '#8b5e3c',
+
+              pointBorderColor:
+                '#ffffff',
+
+              pointBorderWidth: 2
+
+            }
+
+          ]
 
         },
 
-        scales: {
+        options: {
 
-          y: {
-            beginAtZero: true
+          responsive: true,
+
+          maintainAspectRatio: false,
+
+          interaction: {
+
+            mode: 'index',
+
+            intersect: false
+
+          },
+
+          plugins: {
+
+            legend: {
+
+              display: false
+
+            },
+
+            tooltip: {
+
+              backgroundColor:
+                '#2f241d',
+
+              titleColor:
+                '#ffffff',
+
+              bodyColor:
+                '#ffffff',
+
+              padding: 12,
+
+              cornerRadius: 8,
+
+              displayColors: false,
+
+              callbacks: {
+
+                label: (context) => {
+
+                  const value =
+                    Number(
+                      context.raw ?? 0
+                    );
+
+                  return `Revenue: Rs. ${
+                    value.toLocaleString(
+                      'en-LK'
+                    )
+                  }`;
+
+                }
+
+              }
+
+            }
+
+          },
+
+          scales: {
+
+            x: {
+
+              border: {
+
+                display: false
+
+              },
+
+              grid: {
+
+                display: false
+
+              },
+
+              ticks: {
+
+                color:
+                  '#806f63',
+
+                maxRotation: 0,
+
+                autoSkip: true,
+
+                maxTicksLimit: 8,
+
+                font: {
+
+                  size: 11
+
+                }
+
+              }
+
+            },
+
+            y: {
+
+              beginAtZero: true,
+
+              border: {
+
+                display: false
+
+              },
+
+              grid: {
+
+                color:
+                  'rgba(90, 70, 50, 0.08)'
+
+              },
+
+              ticks: {
+
+                color:
+                  '#806f63',
+
+                padding: 8,
+
+                font: {
+
+                  size: 11
+
+                },
+
+                callback: (value) => {
+
+                  const number =
+                    Number(value);
+
+                  if (
+                    number >= 1000000
+                  ) {
+
+                    return `Rs. ${
+                      (
+                        number / 1000000
+                      ).toFixed(1)
+                    }M`;
+
+                  }
+
+                  if (
+                    number >= 1000
+                  ) {
+
+                    return `Rs. ${
+                      (
+                        number / 1000
+                      ).toFixed(0)
+                    }K`;
+
+                  }
+
+                  return `Rs. ${number}`;
+
+                }
+
+              }
+
+            }
+
           }
 
         }
 
-      }
-
-    });
+      });
 
   }
 
+
+  // =====================================================
+  // TOP-SELLING PRODUCT CHART
+  // =====================================================
 
   createProductChart(): void {
 
-    const canvas =
-      document.getElementById(
-        'productChart'
-      ) as HTMLCanvasElement | null;
+    if (
+      !this.productCanvas ||
+      !this.analytics
+    ) {
 
-    if (!canvas || !this.analytics) {
+      console.warn(
+        'Product canvas not available'
+      );
+
       return;
     }
 
+    const canvas =
+      this.productCanvas.nativeElement;
 
-    if (this.productChart) {
-      this.productChart.destroy();
-    }
+    const products =
+      this.analytics.topSellingProducts;
 
+    this.productChart =
+      new Chart(canvas, {
 
-    this.productChart = new Chart(canvas, {
+        type: 'bar',
 
-      type: 'bar',
+        data: {
 
-      data: {
+          labels: products.map(
+            item => item.productName
+          ),
 
-        labels: this.analytics.topSellingProducts.map(
-          item => item.productName
-        ),
+          datasets: [
 
-        datasets: [
+            {
 
-          {
-            label: 'Units Sold',
+              label: 'Units Sold',
 
-            data: this.analytics.topSellingProducts.map(
-              item => item.quantity
-            )
+              data: products.map(
+                item => item.quantity
+              ),
 
-          }
+              backgroundColor:
+                '#8b5e3c',
 
-        ]
+              borderRadius: 6,
 
-      },
+              borderSkipped: false,
 
-      options: {
+              barThickness: 18,
 
-        responsive: true,
+              maxBarThickness: 20
 
-        maintainAspectRatio: false,
+            }
 
-        plugins: {
-
-          legend: {
-            display: true
-          }
+          ]
 
         },
 
-        scales: {
+        options: {
 
-          y: {
-            beginAtZero: true
+          indexAxis: 'y',
+
+          responsive: true,
+
+          maintainAspectRatio: false,
+
+          plugins: {
+
+            legend: {
+
+              display: false
+
+            },
+
+            tooltip: {
+
+              backgroundColor:
+                '#2f241d',
+
+              titleColor:
+                '#ffffff',
+
+              bodyColor:
+                '#ffffff',
+
+              padding: 12,
+
+              cornerRadius: 8,
+
+              displayColors: false,
+
+              callbacks: {
+
+                label: (context) => {
+
+                  const value =
+                    Number(
+                      context.raw ?? 0
+                    );
+
+                  return `Units sold: ${value}`;
+
+                }
+
+              }
+
+            }
+
+          },
+
+          scales: {
+
+            x: {
+
+              beginAtZero: true,
+
+              border: {
+
+                display: false
+
+              },
+
+              grid: {
+
+                color:
+                  'rgba(90, 70, 50, 0.08)'
+
+              },
+
+              ticks: {
+
+                color:
+                  '#806f63',
+
+                padding: 8,
+
+                precision: 0,
+
+                font: {
+
+                  size: 11
+
+                }
+
+              }
+
+            },
+
+            y: {
+
+              border: {
+
+                display: false
+
+              },
+
+              grid: {
+
+                display: false
+
+              },
+
+              ticks: {
+
+                color:
+                  '#4f4036',
+
+                padding: 8,
+
+                font: {
+
+                  size: 12
+
+                }
+
+              }
+
+            }
+
           }
 
         }
 
-      }
-
-    });
+      });
 
   }
 
 
-  createCategoryChart(): void {
+  // =====================================================
+  // DESTROY CHARTS
+  // =====================================================
 
-    const canvas =
-      document.getElementById(
-        'categoryChart'
-      ) as HTMLCanvasElement | null;
+  private destroyCharts(): void {
 
-    if (!canvas || !this.analytics) {
-      return;
+    if (this.revenueChart) {
+
+      this.revenueChart.destroy();
+
+      this.revenueChart = null;
+
     }
 
+    if (this.productChart) {
 
-    if (this.categoryChart) {
-      this.categoryChart.destroy();
+      this.productChart.destroy();
+
+      this.productChart = null;
+
     }
 
+  }
 
-    this.categoryChart = new Chart(canvas, {
 
-      type: 'bar',
+  // =====================================================
+  // DESTROY COMPONENT
+  // =====================================================
 
-      data: {
+  ngOnDestroy(): void {
 
-        labels: this.analytics.topSellingCategories.map(
-          item => item.categoryName
-        ),
-
-        datasets: [
-
-          {
-            label: 'Units Sold',
-
-            data: this.analytics.topSellingCategories.map(
-              item => item.quantity
-            )
-
-          }
-
-        ]
-
-      },
-
-      options: {
-
-        responsive: true,
-
-        maintainAspectRatio: false,
-
-        plugins: {
-
-          legend: {
-            display: true
-          }
-
-        },
-
-        scales: {
-
-          y: {
-            beginAtZero: true
-          }
-
-        }
-
-      }
-
-    });
+    this.destroyCharts();
 
   }
 

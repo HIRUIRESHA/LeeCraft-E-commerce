@@ -44,11 +44,9 @@ export interface DashboardData {
   productCount: number;
   orderCount: number;
   abandonedCartCount: number;
-
   bestSellingProducts: DashboardProduct[];
   recentOrders: RecentOrder[];
   lowStockProducts: LowStockProduct[];
   outOfStockProducts: OutOfStockProduct[];
-
   topChatbotQuestions: string[];
 }
