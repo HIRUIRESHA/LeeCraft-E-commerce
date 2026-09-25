@@ -83,7 +83,9 @@ public class SecurityConfig {
                 List.of(
                         "http://localhost:4200",
                         "http://localhost:4300",
-                        "http://localhost:54425"
+                        "http://localhost:54425",
+                        "https://lee-craft-e-commerce.vercel.app",
+                        "https://lee-craft-e-commerce-g2j1.vercel.app"
                 )
         );
 
